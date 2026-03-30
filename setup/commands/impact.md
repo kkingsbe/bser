@@ -5,7 +5,11 @@ mode: architect
 arguments:
   - plan_name
 ---
-Analyze the dependency impact of the plan in `.plans/$1.md`.
+Analyze the dependency impact of the plan. Plans are stored at:
+- `.plans/<name>.md` for regular tasks
+- `.plans/epics/<epic-slug>/<name>.md` for epic phases
+
+The agent should first check `.plans/$1.md`, and if not found, search in `.plans/epics/*/$1.md`.
 
 For each file listed in the plan's "Files to Change" section:
 

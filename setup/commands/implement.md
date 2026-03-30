@@ -5,11 +5,15 @@ mode: code
 arguments:
   - plan_name
 ---
-Continue implementing the plan in `.plans/$1.md`.
+Continue implementing the plan. Plans are stored at:
+- `.plans/<name>.md` for regular tasks
+- `.plans/epics/<epic-slug>/<name>.md` for epic phases
+
+The agent should first check `.plans/$1.md`, and if not found, search in `.plans/epics/*/$1.md`.
 
 Process:
 1. Read the plan document and check its current status.
-2. **Check for a fix list:** If `.plans/$1.fixlist.md` exists, this is a post-review fix cycle.
+2. **Check for a fix list:** If a fixlist exists alongside the plan (e.g., `.plans/$1.fixlist.md` or `.plans/epics/*/$1.fixlist.md`), this is a post-review fix cycle.
    - Address each issue in the fix list.
    - Check off items as you fix them.
    - Delete the fixlist file when all issues are resolved.
@@ -55,5 +59,5 @@ Terminal output showing:
 
 **Common Variations:**
 - `/implement add-user-authentication` — Standard implementation
-- When fixlist exists: `/implement` reads `.plans/add-user-authentication.fixlist.md` and enters fix mode
+- When fixlist exists: `/implement` reads the fixlist alongside the plan and enters fix mode
 ```

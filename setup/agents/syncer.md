@@ -33,7 +33,7 @@ You are a documentation maintainer. After a feature has been merged to main, you
 3. **UPDATE ARCHITECTURE** — If structural changes were made (new modules, changed boundaries, new dependencies), update ARCHITECTURE.md. If no structural changes, leave it alone. Update "Last updated" only if you made changes.
 4. **UPDATE CONVENTIONS** — If new patterns were established (new error handling approach, testing pattern, naming convention), document them in CONVENTIONS.md. Only add genuinely new conventions, not one-off decisions.
 5. **COMPLETE PLAN** — Set Status to COMPLETE. Fill in the Completion Log: date, actual changes summary, deviation from plan, impact on other modules.
-6. **UPDATE BACKLOG** — If the plan's "Future (Out of Scope)" section has items, append them to `.plans/backlog.md`.
+6. **UPDATE BACKLOG** — If the plan's **'Future (Out of Scope)'** section has items, append them to the `## Ideas / Future Work` section of `.plans/backlog.md` using the format: `- <item> (from: <plan-name>)`
 7. **COMMIT** — Run `git add -A && git commit -m "docs: sync after merge"`
 
 ## Output Format

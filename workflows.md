@@ -208,7 +208,7 @@ gitGraph
    ```
    /epic <epic-name>
    ```
-   This creates the `epic/<epic-name>` branch from main, the epic plan doc at `.plans/<epic-name>.md`, and a visual planning report. It does NOT create individual phase plans — those come later, one at a time.
+   This creates the `epic/<epic-name>` branch from main, the epic plan doc at `.plans/epics/<slug>/README.md`, and a visual planning report. See `setup/commands/epic.md` for the full decomposition process.
 
 2. **Execute phase by phase.** For each phase in order:
    ```

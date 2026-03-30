@@ -5,7 +5,11 @@ mode: architect
 arguments:
   - plan_name
 ---
-Review the implementation on this branch against the plan in `.plans/$1.md`.
+Review the implementation on this branch against the plan. Plans are stored at:
+- `.plans/<name>.md` for regular tasks
+- `.plans/epics/<epic-slug>/<name>.md` for epic phases
+
+The agent should first check `.plans/$1.md`, and if not found, search in `.plans/epics/*/$1.md`.
 
 Gather the following data:
 
@@ -13,7 +17,7 @@ Gather the following data:
 2. Read the plan document to understand what was intended.
 3. **Test suite with baseline comparison:**
    - Run the test suite using the test command from the `## Commands` section of `AGENTS.md` and capture current results.
-   - Read the test baseline from `.plans/$1.baseline-tests.txt` (captured during `/scope`).
+   - Read the test baseline from the same directory as the plan: if plan is at `.plans/$1.md`, baseline is `.plans/$1.baseline-tests.txt`; if plan is at `.plans/epics/*/$1.md`, baseline is alongside it.
    - Compare: identify which failures are **pre-existing** (present in baseline) vs **new** (introduced by this branch).
    - Only flag new failures as blocking issues. Pre-existing failures should be noted but NOT count against the verdict.
 4. Evaluate:
@@ -25,7 +29,7 @@ Gather the following data:
    - **Edge cases:** Obvious error handling gaps or uncovered edge cases?
 5. Determine a verdict: **PASS** or **NEEDS WORK**.
 
-If NEEDS WORK, also write a fix list to `.plans/$1.fixlist.md`:
+If NEEDS WORK, also write a fix list to the same directory as the plan, named `<plan-name>.fixlist.md`:
 ```
 # Fix List: $1
 
