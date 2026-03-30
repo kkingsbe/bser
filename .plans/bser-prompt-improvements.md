@@ -31,7 +31,7 @@ Refactor and enhance the BSER framework's command definitions and subagent promp
 
 ## Implementation Notes
 
-### Phase 1: Add Few-Shot Examples to Commands
+### (complete) Phase 1: Add Few-Shot Examples to Commands
 
 For each command in setup.md section 3, add an "Examples" subsection showing:
 - Typical invocation with arguments
@@ -50,7 +50,7 @@ For each command in setup.md section 3, add an "Examples" subsection showing:
 - `/estimate` — Show calibration report output
 - `/hotfix` — Show minimal fix flow
 
-### Phase 2: Restructure Subagent Definitions
+### (complete) Phase 2: Restructure Subagent Definitions
 
 Follow the system prompt pattern: `[Role] + [Expertise Areas] + [Behavioral Guidelines] + [Output Format] + [Constraints]`
 
@@ -86,7 +86,7 @@ Suggestions: [optional]
 
 **For `reporter.md`:** Add explicit JSON input schemas for each report type
 
-### Phase 3: Add Structured Output Schemas
+### (complete) Phase 3: Add Structured Output Schemas
 
 Define JSON schemas for data flowing between commands and reporter:
 
@@ -134,7 +134,7 @@ For each command, add a "Error Recovery" subsection:
 - **agent-browser unavailable:** Skip live verification, note in report
 ```
 
-### Phase 5: Add Chain-of-Thought Framing to Complex Commands
+### (complete) Phase 5: Add Chain-of-Thought Framing to Complex Commands
 
 For `/scope`, `/epic`, `/impact`, `/estimate`:
 
