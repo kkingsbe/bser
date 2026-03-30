@@ -6,7 +6,7 @@ This bootstraps the BSER (Brief → Scope → Execute → Review+Sync) framework
 
 1. **Clone this repo** to a temporary location:
    ```bash
-   git clone --depth 1 https://github.com/kkingsbe/bser-workflow.git /tmp/bser-setup
+   git clone --depth 1 https://github.com/kkingsbe/bser.git /tmp/bser-setup
    ```
 
 2. **Read `setup.md`** from the cloned repo:
