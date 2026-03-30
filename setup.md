@@ -453,6 +453,52 @@ HTML report at `.reports/brief-<YYYY-MM-DD>.html` with:
 - Run on any branch to rebuild context before starting work
 ```
 
+## Structured Output
+
+When invoking @reporter, pass this JSON schema:
+
+```json
+{
+  "report_type": "brief",
+  "generated_at": "ISO8601 timestamp",
+  "current_branch": "string",
+  "stats": {
+    "commits_48h": "number",
+    "open_plans": "number",
+    "active_epics": "number",
+    "uncommitted_files": "number"
+  },
+  "recent_changes": [
+    {
+      "commit_hash": "string",
+      "message": "string",
+      "affected_modules": ["string"]
+    }
+  ],
+  "current_state": {
+    "branch_status": "string",
+    "open_plans": [
+      {
+        "name": "string",
+        "status": "IN_PROGRESS | IN_REVIEW",
+        "progress": "string"
+      }
+    ]
+  },
+  "epic_progress": [
+    {
+      "name": "string",
+      "total_phases": "number",
+      "completed_phases": "number",
+      "current_phase": "string",
+      "needs_rebase": "boolean"
+    }
+  ],
+  "architecture_flags": ["string"],
+  "suggested_next_actions": ["string"]
+}
+```
+
 ### `/scope` — Phase 2: Scoping
 
 ```markdown
@@ -663,6 +709,43 @@ HTML report at `.reports/epic-<slug>-<YYYY-MM-DD>.html` with:
 - `/epic Refactor legacy payment processing`
 ```
 
+## Structured Output
+
+When invoking @reporter, pass this JSON schema:
+
+```json
+{
+  "report_type": "epic",
+  "generated_at": "ISO8601 timestamp",
+  "epic_name": "string",
+  "epic_slug": "string",
+  "stats": {
+    "total_phases": "number",
+    "estimated_files_affected": "number",
+    "modules_touched": ["string"],
+    "risk_level": "low | medium | high"
+  },
+  "phases": [
+    {
+      "number": "number",
+      "plan_name": "string",
+      "description": "string",
+      "dependencies": ["string"],
+      "status": "PLANNING",
+      "files_affected": ["string"]
+    }
+  ],
+  "branching_strategy": "gitgraph JSON for mermaid",
+  "architecture_impact": {
+    "before": "string (mermaid diagram)",
+    "after": "string (mermaid diagram)",
+    "modules_affected": ["string"]
+  },
+  "risks": ["string"],
+  "open_questions": ["string"]
+}
+```
+
 ### `/implement` — Phase 3: Execute
 
 ```markdown
@@ -858,6 +941,55 @@ Review Findings:
 - `/review` — Review current branch against its plan
 - When tests fail: verdict is NEEDS_WORK, fixlist.md is generated
 - When scope deviations exist: unplanned files flagged in findings
+```
+
+## Structured Output
+
+When invoking @reporter, pass this JSON schema:
+
+```json
+{
+  "report_type": "review",
+  "generated_at": "ISO8601 timestamp",
+  "plan_name": "string",
+  "verdict": "PASS | NEEDS_WORK",
+  "stats": {
+    "files_changed": "number",
+    "lines_added": "number",
+    "lines_removed": "number",
+    "tests_passed": "number",
+    "tests_failed": "number",
+    "new_tests_passed": "number",
+    "new_tests_failed": "number",
+    "pre_existing_failures": "number"
+  },
+  "diff_summary": [
+    {
+      "file": "string",
+      "lines_added": "number",
+      "lines_removed": "number",
+      "planned": "boolean"
+    }
+  ],
+  "issues": [
+    {
+      "severity": "blocking | minor | suggestion",
+      "file": "string",
+      "line": "number",
+      "description": "string",
+      "root_cause": "string",
+      "fix_guidance": "string"
+    }
+  ],
+  "scope_deviations": ["string"],
+  "live_verification": {
+    "checked": ["string"],
+    "passed": ["string"],
+    "failed": ["string"]
+  },
+  "screenshots": ["path"],
+  "pre_existing_failures_list": ["string"]
+}
 ```
 
 ### `/sync` — Phase 4b: Post-Merge Doc Sync
@@ -1123,6 +1255,45 @@ HTML report at `.reports/recap-<YYYY-MM-DD>.html` with:
 - Works best after 1+ hours of work with commits to analyze
 ```
 
+## Structured Output
+
+When invoking @reporter, pass this JSON schema:
+
+```json
+{
+  "report_type": "recap",
+  "generated_at": "ISO8601 timestamp",
+  "stats": {
+    "commits_this_session": "number",
+    "files_changed": "number",
+    "tests_passing": "string",
+    "tests_failing": "number",
+    "open_plans": "number"
+  },
+  "session_activity": [
+    {
+      "commit_hash": "string",
+      "message": "string",
+      "timestamp": "ISO8601"
+    }
+  ],
+  "active_plans": [
+    {
+      "name": "string",
+      "status": "IN_PROGRESS | IN_REVIEW",
+      "progress": "string (e.g., '3/5 test cases')",
+      "checklist_completion": "number (percentage)"
+    }
+  ],
+  "unfinished_threads": {
+    "failing_tests": ["string"],
+    "new_todos": ["string"],
+    "blockers": ["string"]
+  },
+  "recommended_next_actions": ["string"]
+}
+```
+
 ### `/impact` — Dependency Impact Analysis
 
 ```markdown
@@ -1212,6 +1383,48 @@ graph TD
 **Common Variations:**
 - `/impact` — Analyze current branch plan for risk assessment
 - High risk plans show "Suggested Splits" to break into smaller pieces
+```
+
+## Structured Output
+
+When invoking @reporter, pass this JSON schema:
+
+```json
+{
+  "report_type": "impact",
+  "generated_at": "ISO8601 timestamp",
+  "plan_name": "string",
+  "stats": {
+    "files_in_plan": "number",
+    "direct_dependents": "number",
+    "indirect_dependents": "number",
+    "risk_level": "low | medium | high"
+  },
+  "dependency_graph": "mermaid graph TD format showing planned files → direct → indirect",
+  "file_impact": [
+    {
+      "file": "string",
+      "exports": ["string"],
+      "direct_dependents": "number",
+      "test_coverage": "string (file path or 'none')"
+    }
+  ],
+  "risk_assessment": [
+    {
+      "file": "string",
+      "risk_tag": "🟢 low | 🟡 medium | 🔴 high",
+      "explanation": "string",
+      "blast_radius": "string"
+    }
+  ],
+  "suggested_splits": [
+    {
+      "phase": "string",
+      "files": ["string"],
+      "rationale": "string"
+    }
+  ]
+}
 ```
 
 ### `/estimate` — Planned vs. Actual Analysis
@@ -1315,6 +1528,51 @@ HTML report at `.reports/estimate-<YYYY-MM-DD>.html` with:
 **Common Variations:**
 - `/estimate` — Full calibration report across all completed plans
 - Works best when you have 5+ completed plans with filled-in Completion Logs
+```
+
+## Structured Output
+
+When invoking @reporter, pass this JSON schema:
+
+```json
+{
+  "report_type": "estimate",
+  "generated_at": "ISO8601 timestamp",
+  "stats": {
+    "total_completed_plans": "number",
+    "avg_scope_accuracy_percent": "number",
+    "avg_files_deviation": "number",
+    "most_common_surprise_category": "feature | bugfix | refactor | chore"
+  },
+  "plan_accuracy_table": [
+    {
+      "plan_name": "string",
+      "category": "feature | bugfix | refactor | chore",
+      "planned_files": "number",
+      "actual_files": "number",
+      "planned_tests": "number",
+      "actual_tests": "number",
+      "deviated": "boolean",
+      "duration_days": "number"
+    }
+  ],
+  "category_distribution": {
+    "feature": "number",
+    "bugfix": "number",
+    "refactor": "number",
+    "chore": "number"
+  },
+  "category_breakdown": [
+    {
+      "category": "string",
+      "avg_accuracy_percent": "number",
+      "avg_duration_days": "number",
+      "common_deviation_pattern": "string"
+    }
+  ],
+  "patterns": ["string"],
+  "calibration_advice": ["string"]
+}
 ```
 
 ---
