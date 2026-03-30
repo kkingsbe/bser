@@ -6,15 +6,20 @@ This bootstraps the BSER (Brief → Scope → Execute → Review+Sync) framework
 
 1. **Clone this repo** to a temporary location:
    ```bash
-   git clone --depth 1 https://github.com/kkingsbe/bser.git /tmp/bser-setup
+   git clone --depth 1 https://github.com/kkingsbe/bser.git .bser/
    ```
 
 2. **Read `setup.md`** from the cloned repo:
    ```bash
-   cat /tmp/bser-setup/setup.md
+   cat .bser/setup.md
    ```
 
 3. **Follow the setup instructions** in `setup.md` to create the project structure, configuration files, and BSER workflow commands and agents.
+
+4. **Remove the cloned directory** (cleanup - the framework files are now in your project):
+   ```bash
+   rm -rf .bser/
+   ```
 
 The setup will create:
 - `.plans/` directory with plan templates
