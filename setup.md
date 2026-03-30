@@ -604,6 +604,19 @@ Terminal output showing:
 - `/scope refactor database connection pooling` — creates `feat/refactor-database-connection-pooling`
 ```
 
+## Chain of Thought
+
+Follow this reasoning process for every scoping task:
+
+1. **UNDERSTAND**: Read ARCHITECTURE.md and CONVENTIONS.md to understand the current system boundaries and patterns. Identify which modules are likely to be affected.
+2. **INTERPRET**: Parse the task description. What is the user trying to accomplish? What does success look like? Is this a feature, bugfix, refactor, or chore?
+3. **DERIVE**: Convert the description into a short kebab-case slug (2-4 words max). Extract a one-liner that captures the essential goal.
+4. **CONSTRAIN**: Identify the boundaries — what is explicitly NOT part of this task. Check the "Future (Out of Scope)" section of any existing related plans.
+5. **DECOMPOSE**: Break into concrete deliverables: specific files to change, specific test cases to write, specific behavior to implement. If the list grows beyond 5-7 items, suggest decomposing into an epic instead.
+6. **VALIDATE**: Confirm the plan is achievable in a single session. Check that all dependencies are available and that the test baseline will be clean.
+
+Keep reasoning explicit in your output — show which step you're at as you work through it.
+
 ### `/epic` — Large Task Decomposition
 
 ```markdown
@@ -708,6 +721,22 @@ HTML report at `.reports/epic-<slug>-<YYYY-MM-DD>.html` with:
 - `/epic Add real-time notification system`
 - `/epic Refactor legacy payment processing`
 ```
+
+## Chain of Thought
+
+Follow this reasoning process for every epic decomposition:
+
+1. **UNDERSTAND**: Read ARCHITECTURE.md to map current module boundaries. Read any existing epic plans for context. Identify which parts of the system will be affected.
+2. **ASSESS**: Evaluate the task size. Count the distinct functional areas involved. Estimate the number of commits needed. If it feels like it could be done in 1-2 days of focused work, it might not need to be an epic.
+3. **DECOMPOSE**: Break the epic into 2-6 phases, where each phase:
+   - Can be merged independently into the epic branch without breaking it
+   - Leaves the epic branch in a working state
+   - Has clear boundaries (obvious what's in vs out)
+4. **ORDER**: Arrange phases so dependencies flow forward. List which earlier phases each later phase depends on.
+5. **VALIDATE**: Run through the exit criteria — would completing these phases actually deliver the stated objective? Are there any gaps or circular dependencies?
+6. **RISK**: Flag any phases that touch shared/core modules, involve migrations, or have uncertain requirements. Note these in the epic's Risks section.
+
+Keep reasoning explicit — show which step you're at as you work through it.
 
 ## Structured Output
 
@@ -1385,6 +1414,28 @@ graph TD
 - High risk plans show "Suggested Splits" to break into smaller pieces
 ```
 
+## Chain of Thought
+
+Follow this reasoning process for every impact analysis:
+
+1. **READ**: Load the plan document and extract all files listed in "Files to Change". These are your blast radius anchor points.
+2. **TRACE**: For each anchor file, trace imports 2 levels deep:
+   - What files import FROM this file?
+   - What does this file import?
+   - Are any of these imports from shared/core modules?
+3. **ASSESS**: For each dependent file, evaluate:
+   - Is it a test file (lower risk — changes here validate behavior)?
+   - Is it a leaf module (lower risk — few dependents)?
+   - Is it a core/shared module (higher risk — many dependents)?
+4. **CLASSIFY**: Assign risk levels per file:
+   - 🟢 Low: Leaf modules, test files
+   - 🟡 Medium: Modules with moderate dependents
+   - 🔴 High: Core/shared modules with many dependents
+5. **SYNTHESIZE**: Combine per-file risks into an overall plan risk level. A single 🔴 file elevates the whole plan to high risk.
+6. **SUGGEST**: If risk is high, identify natural split points — where could the plan be divided into phases that reduce blast radius?
+
+Keep reasoning explicit — show which step you're at as you work through it.
+
 ## Structured Output
 
 When invoking @reporter, pass this JSON schema:
@@ -1529,6 +1580,30 @@ HTML report at `.reports/estimate-<YYYY-MM-DD>.html` with:
 - `/estimate` — Full calibration report across all completed plans
 - Works best when you have 5+ completed plans with filled-in Completion Logs
 ```
+
+## Chain of Thought
+
+Follow this reasoning process for every calibration analysis:
+
+1. **GATHER**: Scan `.plans/` for all COMPLETE plans. Read the Completion Log from each — this is where the actual vs planned data lives. Skip plans that don't have the Completion Log filled in.
+2. **EXTRACT**: For each completed plan, pull:
+   - Category (feature, bugfix, refactor, chore)
+   - Files planned (from "Files to Change") vs files actually changed (from git)
+   - Test cases planned vs tests actually written
+   - Deviation notes from the Completion Log
+   - Duration (from plan creation date to completion date)
+3. **CALCULATE**: Compute per-plan accuracy:
+   - File accuracy = actual_files / planned_files (1.0 = perfect)
+   - Scope drift = actual_files - planned_files
+   - Group by category to see patterns
+4. **IDENTIFY**: Look for patterns across categories:
+   - Which categories are most underestimated (high actual vs planned)?
+   - What types of work tend to expand beyond the original scope?
+   - Are there consistent ratios (e.g., refactors always need 1.5x the planned files)?
+5. **SYNTHESIZE**: Combine patterns into actionable calibration advice — concrete rules of thumb for future scoping.
+6. **VALIDATE**: Check that the advice makes sense against your own experience. If numbers contradict intuition, dig deeper — the data might be sparse or there might be outliers skewing it.
+
+Keep reasoning explicit — show which step you're at as you work through it.
 
 ## Structured Output
 
