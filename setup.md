@@ -1,0 +1,2505 @@
+# BSER Framework — Setup Guide
+
+> One-time setup for the Brief → Scope → Execute → Review+Sync workflow.
+> After completing this guide, see **BSER-workflow.md** for daily usage.
+
+---
+
+## Prerequisites
+
+- Kilo Code CLI installed and configured
+- Git initialized in your project
+- A working Kilo config at `~/.config/kilo/` or `~/.kilocode/`
+- agent-browser installed: `npx skills add https://github.com/vercel-labs/agent-browser --skill agent-browser`
+
+---
+
+## 1. Project File Structure
+
+Create these directories and files in your project root:
+
+```bash
+mkdir -p .plans
+mkdir -p .kilocode/commands
+mkdir -p .kilo/agents
+mkdir -p .reports/screenshots
+
+touch AGENTS.md
+touch ARCHITECTURE.md
+touch CONVENTIONS.md
+touch .plans/backlog.md
+```
+
+### .gitignore Additions
+
+Add these to your project's `.gitignore`. Reports and screenshots are ephemeral outputs — they can always be regenerated. Fixlists are transient review artifacts. Test baselines *are* committed (they're part of the plan's branch).
+
+```gitignore
+# BSER ephemeral outputs
+.reports/
+.plans/*.fixlist.md
+```
+
+The following **should** be committed:
+- `.plans/*.md` (plan docs, epic docs, backlog, templates)
+- `.plans/*.baseline-tests.txt` (test baselines — needed by `/review`)
+- `AGENTS.md`, `ARCHITECTURE.md`, `CONVENTIONS.md`
+- `.kilocode/commands/*.md` (slash commands)
+- `.kilo/agents/*.md` (subagent definitions)
+
+### AGENTS.md (Starter Template)
+
+This is the project-wide agent configuration file. Every Kilo Code session — commands, subagents, and interactive — loads this automatically. It's the single place to define how agents should behave in this project.
+
+```markdown
+# AGENTS.md
+
+## Project Overview
+
+<1-2 sentence description of the project, its tech stack, and primary purpose>
+
+## BSER Workflow
+
+This project uses the BSER (Brief → Scope → Execute → Review+Sync) framework for human-in-the-loop agentic development.
+
+### Key Files
+
+- `ARCHITECTURE.md` — Living architecture doc, updated by the `@syncer` agent after each merge. Read this before making structural decisions.
+- `CONVENTIONS.md` — Coding patterns and style decisions. Follow these when writing code.
+- `.plans/` — Implementation plan documents. Every feature/fix gets a plan doc before execution.
+- `.plans/backlog.md` — Captured future work items. Append-only during work sessions.
+
+### Workflow Rules
+
+- Always read the relevant plan doc in `.plans/` before implementing. The plan is the contract.
+- Follow TDD: write tests first, then implement to make them pass.
+- Commit after each logical unit of progress with descriptive commit messages.
+- Never expand scope beyond the current plan. If you discover something new, add it to the "Future (Out of Scope)" section of the plan doc.
+- Never refactor unrelated code during a feature implementation.
+- If the plan is wrong or insufficient, stop and report the issue rather than improvising.
+
+## Code Style
+
+<Language-specific style rules, e.g.:>
+- Use TypeScript strict mode
+- Prefer named exports over default exports
+- Use descriptive variable names — no single-letter variables outside loop indices
+
+## Architecture Rules
+
+<Guard rails for structural decisions, e.g.:>
+- All new modules must be registered in ARCHITECTURE.md before implementation
+- Shared code goes in the designated shared module — do not duplicate across services
+- Database schema changes require a migration file
+
+## Testing
+
+<Testing strategy, e.g.:>
+- Unit tests for all business logic — colocate test files with source (`*.spec.ts`)
+- Integration tests for API endpoints
+- Minimum: every function in the plan's "Test Cases" section must have a corresponding test
+
+## Git Conventions
+
+- Branch naming: `feat/<name>`, `fix/<name>`, `spike/<name>`
+- Commit messages: imperative mood, lowercase, no period (`add user auth endpoint`)
+- One logical change per commit — do not bundle unrelated changes
+- Never commit directly to main during feature work
+
+## Dependencies
+
+- Check existing dependencies before adding new ones
+- Prefer standard library solutions over third-party packages when reasonable
+- Document why a new dependency was added in the plan doc's Implementation Notes
+```
+
+> **Adapt this template.** The sections above are starting points. Strip out what doesn't apply, add what does. The `## BSER Workflow` section is the most important — it tells every agent session how to behave within the framework. The rest should reflect your actual project conventions.
+
+### ARCHITECTURE.md (Starter Template)
+
+```markdown
+# Architecture
+
+> This document is maintained by the syncer agent after each feature merge.
+> Last updated: <date>
+
+## Overview
+
+<1-2 sentence description of what this project is>
+
+## Module Boundaries
+
+| Module | Responsibility | Key Files |
+|--------|---------------|-----------|
+| | | |
+
+## Data Flow
+
+<How data moves through the system — even a sentence or two is fine to start>
+
+## Key Decisions
+
+<Record non-obvious architectural decisions here. Why MongoDB over Postgres? Why NestJS? etc.>
+```
+
+### CONVENTIONS.md (Starter Template)
+
+```markdown
+# Conventions
+
+> This document is maintained by the syncer agent after each feature merge.
+> Last updated: <date>
+
+## Code Style
+
+<Naming conventions, file organization patterns, import ordering, etc.>
+
+## Patterns
+
+<Recurring patterns in this codebase — how services are structured, how errors are handled, etc.>
+
+## Testing
+
+<Testing strategy — what gets unit tested, what gets integration tested, naming conventions for test files>
+```
+
+### .plans/backlog.md (Starter Template)
+
+```markdown
+# Backlog
+
+> Append-only during work sessions. Groom between sessions if needed.
+
+## Ideas / Future Work
+
+-
+```
+
+---
+
+## 2. Plan Document Template
+
+Save this as `.plans/_TEMPLATE.md` for reference (or let the `/scope` command generate plans in this format automatically):
+
+```markdown
+# Plan: <feature-name>
+
+**Status:** PLANNING | IN_PROGRESS | IN_REVIEW | COMPLETE
+**Branch:** feat/<short-name>
+**Parent:** main | epic/<epic-name>
+**Created:** <date>
+**One-liner:** <single sentence description>
+
+## Scope
+
+<What this feature does, in 2-3 sentences max>
+
+## Files to Change
+
+- `src/module/file.ts` — <what changes>
+- `src/module/file.spec.ts` — <test cases>
+
+## Test Cases
+
+- [ ] <test case 1>
+- [ ] <test case 2>
+- [ ] <test case 3>
+
+## Implementation Notes
+
+<Key decisions, gotchas, dependencies>
+
+## Future (Out of Scope)
+
+<Anything that came up during planning but is NOT part of this task.
+Move these to .plans/backlog.md during sync.>
+
+---
+
+## Completion Log
+
+**Completed:** <date>
+**Actual changes:** <summary of what was built>
+**Deviated from plan:** <yes/no, and how>
+**Impact:** <what modules now depend on this>
+```
+
+### Epic Template
+
+For large tasks that span multiple phases — refactors, multi-module features, migrations — use an epic. An epic is a parent plan that decomposes into ordered child plans, each of which follows the normal BSER loop independently.
+
+Save this as `.plans/_EPIC_TEMPLATE.md`:
+
+```markdown
+# Epic: <epic-name>
+
+**Status:** PLANNING | IN_PROGRESS | COMPLETE
+**Branch:** epic/<epic-name>
+**Created:** <date>
+**One-liner:** <single sentence describing the full outcome>
+
+## Objective
+
+<What this epic achieves when fully complete, in 3-5 sentences. What does the codebase look like after all phases are done?>
+
+## Phases
+
+Each phase is a self-contained plan that branches from and merges back into `epic/<epic-name>`. Phases are ordered — later phases may depend on earlier ones being merged.
+
+| # | Plan | Description | Dependencies | Status |
+|---|------|-------------|-------------|--------|
+| 1 | `<epic>-phase-1-<name>` | <what this phase does> | none | PLANNING |
+| 2 | `<epic>-phase-2-<name>` | <what this phase does> | phase 1 | PLANNING |
+| 3 | `<epic>-phase-3-<name>` | <what this phase does> | phase 2 | PLANNING |
+
+## Architecture Impact
+
+<How does this epic change the system architecture? What modules are affected?>
+
+## Risks & Open Questions
+
+- <risk or question 1>
+- <risk or question 2>
+
+## Exit Criteria
+
+<How do you know the epic is done? What should be true when all phases are complete?>
+
+---
+
+## Progress Log
+
+| Phase | Started | Completed | Notes |
+|-------|---------|-----------|-------|
+| 1 | | | |
+| 2 | | | |
+| 3 | | | |
+```
+
+---
+
+## 3. Custom Slash Commands
+
+Create each of these markdown files in `.kilocode/commands/` (project-level) or `~/.kilocode/commands/` (global).
+
+**Design principle:** Every command that produces human-facing context (briefs, recaps, reviews, impact analyses, estimates) gathers its data and then invokes `@reporter` to render a visual HTML report. Action commands (scope, implement, sync, hotfix) that produce code or docs stay as terminal output. This means your primary interface for understanding the project state is always a polished, scannable report — not a wall of terminal text.
+
+### `/brief` — Phase 1: Briefing
+
+```markdown
+# .kilocode/commands/brief.md
+---
+description: Generate a project briefing to rebuild mental model before starting work
+mode: architect
+---
+Generate a development briefing for this project by gathering the following data:
+
+1. RECENT CHANGES
+   - Run `git log --oneline --since="48 hours ago"` (or since last merge to main if more recent).
+   - For each commit, note: what changed, which modules/services were touched.
+   - Check for any new dependencies or patterns introduced.
+
+2. CURRENT STATE
+   - What branch am I on? What is its status vs main?
+   - Are there uncommitted changes?
+   - Scan .plans/ for any documents with status IN_PROGRESS or IN_REVIEW.
+
+3. EPIC STATUS
+   - Check for any `epic/*` branches: `git branch --list 'epic/*'`
+   - For each active epic, read its plan doc and summarize: how many phases total, how many complete, what's the current/next phase.
+   - Flag if any epic branch has diverged significantly from main (more than 20 commits behind).
+
+4. ARCHITECTURE SNAPSHOT
+   - Read ARCHITECTURE.md. Flag anything in recent commits that contradicts, extends, or is missing from it.
+   - List the top-level module boundaries and their responsibilities.
+
+5. SUGGESTED NEXT ACTIONS
+   - Based on open plans, epic progress, and recent momentum, identify 1-3 logical next tasks.
+   - Flag anything that looks broken, half-finished, or blocking.
+
+Once you have all the data, invoke @reporter to render it as a briefing report.
+
+The report should include:
+- A stat card row: commits in last 48h, open plans count, active epics count, current branch, uncommitted file count
+- A "Recent Changes" section with a concise table of commits and affected modules
+- A "Current State" section showing branch status and open plans with their progress
+- An "Epic Progress" section (only if active epics exist) — for each epic show: phase completion as a progress bar or fraction, current phase name, and whether the epic branch needs rebasing against main
+- An architecture snapshot section — only if there are flags to raise
+- A "Suggested Next Actions" section with 1-3 prioritized tasks
+- If there are 3+ recent commits touching different modules, include a mermaid graph showing which modules were affected
+
+Save to: `.reports/brief-<YYYY-MM-DD>.html`
+```
+
+### `/scope` — Phase 2: Scoping
+
+```markdown
+# .kilocode/commands/scope.md
+---
+description: Create a scoped implementation plan and branch for a task
+mode: architect
+---
+I'm scoping a new task: "$ARGUMENTS"
+
+Follow this process:
+
+0. NAMING: From the task description above, derive:
+   - A **slug** — a short kebab-case identifier (2-4 words max) suitable for branch names and filenames. Examples: `add-xer-parser`, `fix-mongo-timeout`, `refactor-auth-service`.
+   - A **one-liner** — a single sentence description of the task.
+   Use the slug for all branch names and file names below.
+
+1. BRANCH: Determine the correct base branch:
+   - Check if the task description references an existing epic. If so, check if an epic branch `epic/<epic-slug>` exists.
+   - If an epic branch exists, branch from it: `git checkout epic/<epic-slug> && git pull && git checkout -b feat/<slug>`
+   - Otherwise, branch from main: `git checkout main && git pull && git checkout -b feat/<slug>`
+   - For bugfixes (description mentions fixing/resolving a bug), use `fix/<slug>` instead of `feat/<slug>`.
+
+2. TEST BASELINE: Run the test suite on the fresh branch **before any changes** and save the results:
+   - Run tests and capture output: `npm test 2>&1 | tee .plans/<slug>.baseline-tests.txt` (or equivalent test command)
+   - Record the pass/fail counts at the top of the file.
+   - This baseline will be used by `/review` to distinguish pre-existing failures from regressions introduced by this task.
+   - Commit the baseline: `git add .plans/<slug>.baseline-tests.txt && git commit -m "test baseline: <slug>"`
+
+3. PLAN: Create an implementation plan:
+   - List the specific functions, methods, or components to create or modify.
+   - List concrete test cases.
+   - Identify which existing modules this touches and any potential side effects.
+   - Check ARCHITECTURE.md and CONVENTIONS.md for relevant patterns to follow.
+   - If the scope feels very large, suggest decomposing into an epic via `/epic` instead.
+
+4. WRITE: Save the plan to `.plans/<slug>.md` using the template format found in `.plans/_TEMPLATE.md` (if it exists) or this structure:
+   - Status: IN_PROGRESS
+   - Branch name
+   - Parent branch (main or epic/<n>)
+   - One-liner description
+   - Scope, Files to Change, Test Cases, Implementation Notes, Future (Out of Scope)
+
+5. COMMIT: Commit the plan document: `git add .plans/<slug>.md && git commit -m "plan: <slug>"`
+
+Present the derived slug and plan for my review before committing. Keep the planning focused — if you find yourself expanding scope, add items to the "Future" section instead.
+```
+
+### `/epic` — Large Task Decomposition
+
+```markdown
+# .kilocode/commands/epic.md
+---
+description: Decompose a large task into an ordered sequence of scoped phases on a dedicated epic branch
+mode: architect
+---
+I need to plan a large task: "$ARGUMENTS"
+
+This is too big for a single plan. Decompose it into an epic with ordered phases.
+
+Follow this process:
+
+0. NAMING: From the task description above, derive:
+   - An **epic slug** — a short kebab-case identifier (2-4 words max) for the epic. Examples: `refactor-auth`, `add-reporting-module`, `migrate-to-postgres`.
+   - A **one-liner** — a single sentence describing the full outcome.
+   Use the slug for all branch names and file names below.
+
+1. BRANCH: Create a long-lived epic branch from main:
+   Run: `git checkout main && git pull && git checkout -b epic/<slug>`
+   This branch will accumulate all phase work. Individual phases will branch from and merge back into this epic branch. The epic branch merges to main only when the full epic is complete.
+
+2. UNDERSTAND: Read ARCHITECTURE.md and CONVENTIONS.md to understand the current system.
+   Identify all modules, files, and boundaries that this task will touch.
+
+3. DECOMPOSE: Break the task into 2-6 phases, where each phase:
+   - Can be implemented, reviewed, and merged independently into the epic branch
+   - Leaves the epic branch in a working state after merging (no broken intermediate states)
+   - Has clear boundaries — it's obvious what's in vs out of each phase
+
+   Common decomposition strategies:
+   - **Layer by layer:** Data model first → service layer → API → UI
+   - **Module by module:** Refactor module A → module B → module C → update shared interfaces
+   - **Vertical slice:** End-to-end for feature subset 1 → subset 2 → subset 3
+   - **Strangler fig:** New implementation alongside old → migration → cleanup old code
+
+4. ORDER: Arrange phases so dependencies flow forward. Each phase should list which earlier phases it depends on.
+
+5. WRITE: Save the epic to `.plans/<slug>.md` using the epic template format found in `.plans/_EPIC_TEMPLATE.md`.
+   - Status: IN_PROGRESS
+   - Epic branch: `epic/<slug>`
+   - Fill in the phases table with plan names following the convention: `<slug>-phase-N-<short-description>`
+   - Document architecture impact, risks, and exit criteria
+
+6. COMMIT: `git add .plans/<slug>.md && git commit -m "epic: <slug>"`
+
+Present the derived slug and decomposition for my review before committing.
+
+Then invoke @reporter to render an epic planning report.
+
+The report should include:
+- A stat card row: total phases, estimated files affected, modules touched, risk level
+- A mermaid flowchart showing phase dependencies (which phases block which)
+- A mermaid gitgraph showing the branching strategy: main → epic/<slug> → feat/phase-1 → merge back → feat/phase-2 → merge back → ... → merge epic to main
+- A phase breakdown table with description, files affected, and dependency chain
+- An architecture impact section with a before/after mermaid diagram if structural changes are involved
+- A risks & open questions section
+
+Save to: `.reports/epic-<slug>-<YYYY-MM-DD>.html`
+
+Do NOT create the individual phase plan documents yet — those will be created one at a time via `/scope` as each phase is reached. The epic document is the roadmap; the phase plans are the turn-by-turn directions.
+```
+
+### `/implement` — Phase 3: Execute
+
+```markdown
+# .kilocode/commands/implement.md
+---
+description: Continue implementing an existing plan
+mode: code
+arguments:
+  - plan_name
+---
+Continue implementing the plan in `.plans/$1.md`.
+
+Process:
+1. Read the plan document and check its current status.
+2. **Check for a fix list:** If `.plans/$1.fixlist.md` exists, this is a post-review fix cycle.
+   - Address each issue in the fix list.
+   - Check off items as you fix them.
+   - Delete the fixlist file when all issues are resolved.
+   - Skip the rest of this process — focus only on the fixes.
+3. Check git status and recent commits on this branch to understand what's already been done.
+4. Run existing tests to see current state: what passes, what fails, what's missing.
+5. Continue implementation from where it left off:
+   - Write tests first, then implement to make them pass (TDD).
+   - Follow patterns in CONVENTIONS.md.
+   - Commit after each logical unit of progress with descriptive commit messages.
+6. After completing a chunk of work, update the test case checkboxes in the plan doc.
+
+Do NOT:
+- Modify files outside the scope defined in the plan.
+- Add features not in the plan (note them in the "Future" section instead).
+- Refactor unrelated code, even if you notice opportunities.
+
+If the plan turns out to be wrong or insufficient, stop and tell me what needs to change rather than improvising.
+```
+
+### `/review` — Phase 4a: Diff Review
+
+```markdown
+# .kilocode/commands/review.md
+---
+description: Review the current branch diff against main and generate a review report
+mode: architect
+arguments:
+  - plan_name
+---
+Review the implementation on this branch against the plan in `.plans/$1.md`.
+
+Gather the following data:
+
+1. Run `git diff main..HEAD` and `git diff --stat main..HEAD` to see all changes.
+2. Read the plan document to understand what was intended.
+3. **Test suite with baseline comparison:**
+   - Run the test suite (`npm test` or equivalent) and capture current results.
+   - Read the test baseline from `.plans/$1.baseline-tests.txt` (captured during `/scope`).
+   - Compare: identify which failures are **pre-existing** (present in baseline) vs **new** (introduced by this branch).
+   - Only flag new failures as blocking issues. Pre-existing failures should be noted but NOT count against the verdict.
+4. Evaluate:
+   - **Plan alignment:** Does the implementation match what was planned? List deviations.
+   - **Scope check:** Are there changes to files NOT listed in the plan? Flag each.
+   - **Code quality:** Check naming, patterns, consistency with CONVENTIONS.md.
+   - **Test coverage:** Are all planned test cases present and passing?
+   - **Completeness:** Any TODOs, placeholder code, or commented-out blocks?
+   - **Edge cases:** Obvious error handling gaps or uncovered edge cases?
+5. Determine a verdict: **PASS** or **NEEDS WORK**.
+
+If NEEDS WORK, also write a fix list to `.plans/$1.fixlist.md`:
+```
+# Fix List: $1
+
+## Issues to Address
+
+- [ ] Issue 1: <description> — `file.ts:L42`
+  **Why this failed:** <root cause explanation — what the code does wrong and why>
+  **How to fix:** <specific guidance on the approach to take>
+
+- [ ] Issue 2: <description> — `file.ts:L87`
+  **Why this failed:** <root cause explanation>
+  **How to fix:** <specific guidance>
+
+## Context for Fix Session
+
+<Overall explanation of what went wrong. Include:
+- Which parts of the plan were implemented correctly
+- Where the implementation diverged or fell short
+- Any patterns in the issues (e.g., "all issues are related to null handling in the parser")
+- Relevant code context the implementing agent needs to understand the fix>
+```
+
+Then invoke @reporter to render a review report.
+
+The report should include:
+- A stat card row: files changed, lines added/removed, new tests passing/failing (excluding pre-existing failures), verdict (PASS as green tag, NEEDS WORK as yellow tag)
+- A "Diff Summary" table: filename, lines changed, planned vs unplanned (tag)
+- A "Review Findings" section with numbered issues, each with file reference, severity tag (🔴 blocking, 🟡 minor, 🟢 suggestion), root cause, and fix guidance
+- A "Test Results" section with two parts: **New/Changed** (tests affected by this branch — these determine the verdict) and **Pre-existing Failures** (failures present in the baseline — noted for awareness but not blocking). Show the baseline comparison clearly.
+- If there are scope deviations, a mermaid diagram showing planned files vs actual files changed
+- A "Live Verification" section if UI changes were involved — embed any screenshots from `.reports/screenshots/review-$1-*` as base64 images with captions describing what was verified
+- A "Verdict" section with clear PASS/NEEDS WORK and summary
+
+Save to: `.reports/review-$1-<YYYY-MM-DD>.html`
+```
+
+### `/sync` — Phase 4b: Post-Merge Doc Sync
+
+```markdown
+# .kilocode/commands/sync.md
+---
+description: Update project docs after merging a feature branch
+mode: code
+arguments:
+  - plan_name
+---
+The feature branch for `$1` has been merged to main. Update the project knowledge base.
+
+1. **ARCHITECTURE.md**: Read the current doc and the changes from this feature.
+   - If any structural changes were made (new modules, changed boundaries, new dependencies), update the relevant sections.
+   - If no structural changes, leave it alone — don't add noise.
+   - Update the "Last updated" date only if you made changes.
+
+2. **CONVENTIONS.md**: If any new patterns were established by this feature (new error handling approach, new testing pattern, new naming convention), document them.
+   - Only add genuinely new conventions, not one-off decisions.
+
+3. **Plan document** (`.plans/$1.md`):
+   - Set Status to COMPLETE.
+   - Fill in the Completion Log section: date, actual changes summary, whether implementation deviated from plan, and impact on other modules.
+
+4. **Backlog**: If the plan's "Future (Out of Scope)" section has items, append them to `.plans/backlog.md`.
+
+5. **Commit**: Stage and commit all doc changes: `git add -A && git commit -m "docs: sync after $1 merge"`
+
+Be concise in all updates. These docs should be scannable, not exhaustive.
+```
+
+### `/hotfix` — Escape Hatch: Quick Fix
+
+```markdown
+# .kilocode/commands/hotfix.md
+---
+description: Quick fix on a hotfix branch — skip planning, still review+sync
+mode: code
+---
+Quick hotfix: "$ARGUMENTS"
+
+1. Derive a short kebab-case slug from the description above (e.g., `fix-null-pointer-auth`, `fix-csv-export-crash`).
+2. Create branch: `git checkout main && git pull && git checkout -b fix/<slug>`
+3. Implement the fix directly. Keep changes minimal and focused.
+4. Run tests to confirm the fix works and nothing else broke.
+5. Commit with message: `fix: <slug>`
+
+After implementation, I'll run /review and /sync manually.
+Do NOT expand scope beyond the immediate fix.
+```
+
+### `/recap` — End-of-Session Summary
+
+```markdown
+# .kilocode/commands/recap.md
+---
+description: Generate an end-of-session summary report
+mode: architect
+---
+Generate an end-of-session recap by gathering the following data:
+
+1. **Git activity this session:**
+   - Run `git log --oneline --since="4 hours ago"` (adjust if needed).
+   - Summarize what was built, fixed, or changed.
+
+2. **Plan progress:**
+   - Check all `.plans/*.md` files for current status.
+   - For any IN_PROGRESS plans: what's done, what's remaining.
+
+3. **Unfinished threads:**
+   - Any failing tests? (`npm test` or equivalent, capture summary)
+   - Any TODOs added this session? (`git diff main..HEAD | grep -i "TODO"`)
+   - Any items added to the "Future" section of plan docs?
+
+4. **Recommended next steps:**
+   - What should the next session start with?
+   - Any blockers or decisions needed before continuing?
+
+Then invoke @reporter to render a recap report.
+
+The report should include:
+- A stat card row: commits this session, files changed, tests passing/failing, open plans count
+- A "Session Activity" section with a timeline or table of commits
+- An "Active Plans" section showing each plan's progress (use a progress indicator or checklist completion %)
+- An "Unfinished Threads" section — only if there are failing tests, TODOs, or blockers
+- A "Next Session" section with 1-3 prioritized recommended actions
+- If multiple plans are active, a mermaid gantt or status diagram showing their states
+
+Save to: `.reports/recap-<YYYY-MM-DD>.html`
+```
+
+### `/impact` — Dependency Impact Analysis
+
+```markdown
+# .kilocode/commands/impact.md
+---
+description: Analyze and visualize the dependency impact of a planned change
+mode: architect
+arguments:
+  - plan_name
+---
+Analyze the dependency impact of the plan in `.plans/$1.md`.
+
+For each file listed in the plan's "Files to Change" section:
+
+1. **Import graph:** What other files import from this file? Trace 2 levels deep.
+2. **Export surface:** What functions, classes, or types does this file export that others depend on?
+3. **Test coverage:** Which test files cover this module? Are there integration tests?
+4. **Shared module risk:** Does this touch shared/core modules? If so, flag the blast radius.
+
+Then invoke @reporter to render an impact analysis report.
+
+The report should include:
+- A stat card row: files in plan, direct dependents count, indirect dependents count, risk level (🟢/🟡/🔴 as colored tag)
+- A **mermaid dependency graph** showing: planned files (highlighted) → direct dependents → indirect dependents. Use different node colors for planned changes vs affected files.
+- A "File Impact Table": for each planned file, list its exports, direct dependents, and test coverage status
+- A "Risk Assessment" section with per-file risk tags and explanation
+- If risk is 🔴, a "Suggested Splits" section recommending how to break the plan into smaller pieces
+
+Save to: `.reports/impact-$1-<YYYY-MM-DD>.html`
+```
+
+### `/estimate` — Planned vs. Actual Analysis
+
+```markdown
+# .kilocode/commands/estimate.md
+---
+description: Analyze estimation accuracy across completed plans and generate a calibration report
+mode: architect
+---
+Analyze completed plans to identify estimation patterns.
+
+1. **Scan `.plans/` for all COMPLETE plans** that have a filled-in Completion Log.
+
+2. **For each completed plan, extract:**
+   - Number of files planned vs. actually changed
+   - Planned test cases vs. actual test count
+   - Whether implementation deviated from plan (and how)
+   - Time from plan creation to completion (from git dates)
+
+3. **Identify patterns:**
+   - Do plans consistently underestimate file count?
+   - Which types of tasks deviate most from their plans?
+   - Common categories of unplanned work?
+   - Typical ratio of planned scope to actual scope?
+
+Then invoke @reporter to render an estimation calibration report.
+
+The report should include:
+- A stat card row: total completed plans, average scope accuracy %, average deviation, most common surprise category
+- A "Plan Accuracy" table: plan name, planned files vs actual, planned tests vs actual, deviated (yes/no), duration
+- A mermaid bar chart or visual comparison of planned vs actual scope per plan
+- A "Patterns" section with specific calibration insights
+- A "Calibration Advice" section with concrete rules of thumb for future scoping
+
+Save to: `.reports/estimate-<YYYY-MM-DD>.html`
+```
+
+---
+
+## 4. Custom Subagents
+
+Subagents are specialized agents defined as markdown files with YAML frontmatter. They run in isolated sessions with their own prompts, models, and permissions. Place them in `.kilo/agents/` (project-level) or `~/.config/kilo/agents/` (global). The filename (minus `.md`) becomes the agent name.
+
+You can invoke them manually with `@agent-name` in the CLI, or primary agents can invoke them automatically via the Task tool.
+
+### `reviewer` — Phase 4a: Diff Review Agent
+
+```markdown
+# .kilo/agents/reviewer.md
+---
+description: Reviews the current feature branch diff against main and its plan document. Includes live verification via agent-browser when a UI is involved. Read-only — cannot edit files.
+mode: subagent
+temperature: 0.1
+permission:
+  edit: deny
+  bash:
+    "*": deny
+    "git diff*": allow
+    "git log*": allow
+    "git show*": allow
+    "npm test*": allow
+    "npm run test*": allow
+    "npx jest*": allow
+    "agent-browser *": allow
+---
+
+You are a senior code reviewer. Your job is to review the diff of the current feature branch against main, comparing the implementation to its plan document in `.plans/`.
+
+## Review Process
+
+1. Read the plan document to understand what was intended.
+2. Run `git diff main..HEAD` to see all changes.
+3. Run the test suite to confirm tests pass.
+4. Evaluate the implementation against these criteria:
+
+**Plan alignment:** Does the implementation match what was planned? List deviations.
+**Scope check:** Are there changes to files NOT listed in the plan? Flag each one.
+**Code quality:** Check naming, patterns, consistency with CONVENTIONS.md.
+**Test coverage:** Are all planned test cases present and passing?
+**Completeness:** Any TODOs, placeholder code, or commented-out blocks?
+**Edge cases:** Obvious error handling gaps or uncovered edge cases?
+
+5. **Live verification (when applicable):** If the plan involves UI changes (components, pages, styles, routes), verify them in the running app using agent-browser:
+
+```bash
+# Navigate to the relevant page
+agent-browser open http://localhost:4200/<relevant-route>
+agent-browser wait --load networkidle
+
+# Take a screenshot as evidence for the review report
+agent-browser screenshot .reports/screenshots/review-<plan-name>-<context>.png
+
+# Snapshot interactive elements and verify the expected UI is present
+agent-browser snapshot -i
+
+# Check specific elements if the plan mentions them
+agent-browser get text @e<n>
+
+# If the feature involves forms, navigation, or interactions — walk through them
+# Document what works and what doesn't
+```
+
+Skip live verification if:
+- The plan is backend-only (no UI changes)
+- The dev server is not running (note this in the review, don't fail for it)
+- The changes are purely test/config/docs
+
+When you take screenshots during live verification, save them to `.reports/screenshots/` — they will be embedded in the review report by @reporter.
+
+## Output Format
+
+Provide a summary:
+- **Verdict: PASS** or **NEEDS WORK**
+- **Issues:** Numbered list with file and line references
+- **Live verification result:** What was checked in the browser, what passed, what failed (if applicable)
+- **Screenshots:** List paths to any screenshots taken
+- **Suggestions:** Optional non-blocking improvements
+
+Be thorough but pragmatic. Minor style issues are not blockers.
+
+## Constraints
+
+- Never edit or create files. Only read, analyze, and report.
+- Always reference the plan document when evaluating.
+- Always run the test suite as part of the review.
+- Only use agent-browser for verification — never use it to make changes.
+```
+
+### `syncer` — Phase 4b: Post-Merge Doc Sync Agent
+
+```markdown
+# .kilo/agents/syncer.md
+---
+description: Updates ARCHITECTURE.md, CONVENTIONS.md, and plan docs after a feature branch merge. Only edits markdown files.
+mode: subagent
+permission:
+  edit:
+    "*": deny
+    "*.md": allow
+    "*.mdx": allow
+  bash:
+    "*": deny
+    "git add*": allow
+    "git commit*": allow
+    "git log*": allow
+    "git diff*": allow
+---
+
+You are a documentation maintainer. After a feature has been merged to main, you update the project's living documentation to reflect what was actually built.
+
+## Sync Process
+
+1. Run `git log main~5..main --oneline` to see what was just merged.
+2. Read the relevant plan document in `.plans/`.
+3. Update documentation:
+
+**ARCHITECTURE.md** — If structural changes were made (new modules, changed boundaries, new dependencies), update the relevant sections. If no structural changes, leave it alone. Update "Last updated" only if you made changes.
+
+**CONVENTIONS.md** — If new patterns were established (new error handling approach, testing pattern, naming convention), document them. Only add genuinely new conventions, not one-off decisions.
+
+**Plan document** — Set Status to COMPLETE. Fill in the Completion Log: date, actual changes summary, deviation from plan, impact on other modules.
+
+**Backlog** — If the plan's "Future (Out of Scope)" section has items, append them to `.plans/backlog.md`.
+
+4. Commit: `git add -A && git commit -m "docs: sync after merge"`
+
+## Constraints
+
+- Only edit markdown files. Never touch source code.
+- Be concise — these docs should be scannable, not exhaustive.
+- Don't add noise. If nothing changed structurally, don't update ARCHITECTURE.md just to update it.
+```
+
+### `reporter` — Human Interface Report Generator
+
+This is the most important subagent in the framework. Every piece of context that needs to be transferred from the agents to you — briefs, recaps, reviews, impact analyses, estimates — is rendered by the reporter as a polished HTML report. The reporter is the universal rendering layer between the BSER system and the human developer.
+
+The slash commands (`/brief`, `/recap`, `/review`, `/impact`, `/estimate`) gather data, then invoke `@reporter` to render it. You can also invoke `@reporter` directly for ad-hoc reports.
+
+```markdown
+# .kilo/agents/reporter.md
+---
+description: The human interface layer for the BSER framework. Renders all developer-facing context (briefs, recaps, reviews, impact analyses, estimates) as polished HTML+CSS reports with mermaid diagrams. Invoked by other commands to present their findings visually. Can also be invoked directly for ad-hoc reports.
+mode: subagent
+permission:
+  edit:
+    "*": deny
+    ".reports/*.html": allow
+    ".reports/**/*.html": allow
+  bash:
+    "*": deny
+    "git log*": allow
+    "git diff*": allow
+    "git shortlog*": allow
+    "git rev-list*": allow
+    "find*": allow
+    "wc*": allow
+    "grep*": allow
+    "cat .plans/*": allow
+    "ls*": allow
+    "mkdir*": allow
+    "open *": allow
+    "xdg-open *": allow
+    "agent-browser *": allow
+    "base64 *": allow
+    "cat .reports/screenshots/*": allow
+---
+
+You are a report generator. You create polished, standalone HTML reports with embedded CSS and mermaid diagrams. Reports are self-contained single-file HTML documents that can be opened in any browser.
+
+You also have access to `agent-browser` for capturing screenshots of live applications, dashboards, or any web content that should be included in a report. Use this when asked to include visual evidence or when generating reports that benefit from live screenshots (e.g., deployment verification, dashboard snapshots).
+
+## Output Location
+
+All reports go to `.reports/` in the project root. Create the directory if it doesn't exist.
+Screenshots go to `.reports/screenshots/`. They may already exist from the reviewer agent — embed them.
+
+Name files descriptively: `.reports/project-brief-2025-01-15.html`, `.reports/sprint-recap.html`, etc.
+
+**Always open the report in the default browser after creating it:**
+```bash
+# macOS
+open .reports/report-name.html
+
+# Linux
+xdg-open .reports/report-name.html
+```
+Detect the platform and use the appropriate command. This is non-negotiable — every report must be opened automatically so the developer sees it immediately.
+
+## Report Template
+
+Every report must use this base structure:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{REPORT_TITLE}}</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({startOnLoad: true, theme: 'neutral'});</script>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #1a1a2e;
+      --accent: #e76f51;
+      --accent2: #2d6a4f;
+      --muted: #6c757d;
+      --border: #dee2e6;
+      --surface: #f8f9fa;
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1a2e;
+        --fg: #e6e6e6;
+        --accent: #e76f51;
+        --accent2: #52b788;
+        --muted: #9ca3af;
+        --border: #2d2d44;
+        --surface: #16213e;
+      }
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    h1 { font-size: 1.8rem; margin-bottom: 0.25rem; }
+    h2 { font-size: 1.3rem; margin-top: 2rem; margin-bottom: 0.75rem; color: var(--accent2); border-bottom: 2px solid var(--border); padding-bottom: 0.25rem; }
+    h3 { font-size: 1.1rem; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+    p, li { margin-bottom: 0.5rem; }
+    .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin: 1rem 0; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center; }
+    .stat-card .value { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
+    .stat-card .label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+    th, td { padding: 0.5rem 0.75rem; border: 1px solid var(--border); text-align: left; }
+    th { background: var(--surface); font-weight: 600; }
+    .tag { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .tag-green { background: #d4edda; color: #155724; }
+    .tag-yellow { background: #fff3cd; color: #856404; }
+    .tag-red { background: #f8d7da; color: #721c24; }
+    .tag-blue { background: #d1ecf1; color: #0c5460; }
+    code { font-family: var(--mono); font-size: 0.85em; background: var(--surface); padding: 0.15rem 0.35rem; border-radius: 3px; }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; overflow-x: auto; margin: 1rem 0; }
+    pre code { background: none; padding: 0; }
+    .mermaid { margin: 1.5rem 0; text-align: center; }
+    .screenshot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1rem; margin: 1rem 0; }
+    .screenshot { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .screenshot img { width: 100%; display: block; }
+    .screenshot .caption { padding: 0.5rem 0.75rem; font-size: 0.8rem; color: var(--muted); background: var(--surface); }
+    footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <!-- Report content here -->
+  <footer>Generated by BSER Reporter · {{DATE}}</footer>
+</body>
+</html>
+```
+
+## Mermaid Diagrams
+
+Use mermaid for all visual elements. Common patterns:
+
+- **Architecture diagrams:** `graph TD` or `graph LR` for module relationships
+- **Timelines:** `gantt` for plan progress over time
+- **Status breakdowns:** `pie` for distribution of plan statuses
+- **Flow diagrams:** `flowchart` for data flow or process visualization
+- **Git history:** `gitgraph` for branch/merge visualization
+
+Wrap mermaid in: `<pre class="mermaid">graph TD; A-->B;</pre>`
+
+## Screenshots & Visual Evidence
+
+Screenshots can come from two sources:
+1. **Pre-captured by the reviewer agent** — saved to `.reports/screenshots/` during live verification
+2. **Captured by you (the reporter)** — using `agent-browser` when building reports that need live visuals
+
+### Embedding Screenshots
+
+Embed screenshots as base64 data URIs so reports stay fully self-contained:
+
+```bash
+# Convert screenshot to base64 for embedding
+base64 -i .reports/screenshots/review-feature-home.png
+```
+
+Then embed in HTML:
+```html
+<div class="screenshot-grid">
+  <div class="screenshot">
+    <img src="data:image/png;base64,{{BASE64_DATA}}" alt="Home page after changes">
+    <div class="caption">Home page — post-implementation</div>
+  </div>
+</div>
+```
+
+### Capturing Screenshots with agent-browser
+
+When you need live screenshots for a report (dashboards, deployed apps, external tools):
+
+```bash
+# Capture a specific page
+agent-browser open http://localhost:4200/dashboard
+agent-browser wait --load networkidle
+agent-browser screenshot .reports/screenshots/dashboard-current.png
+
+# Full page capture
+agent-browser screenshot --full .reports/screenshots/page-full.png
+
+# Capture a specific section (scope to selector)
+agent-browser snapshot -s "#metrics-panel"
+agent-browser screenshot .reports/screenshots/metrics-panel.png
+
+# Close when done
+agent-browser close
+```
+
+Always close the browser session when finished capturing.
+
+## Report Types
+
+When asked to generate a report, infer the type from context or ask. Common types:
+
+- **Project Brief:** Overview of architecture, module boundaries, recent activity, open plans
+- **Sprint Recap:** What was completed, what's in progress, velocity metrics from plan history
+- **Impact Analysis:** Visual dependency graph of a planned change's blast radius
+- **Estimation Report:** Planned-vs-actual analysis with calibration insights
+- **Architecture Map:** Visual module diagram with responsibilities and dependencies
+- **Review Report:** Diff review findings with live verification screenshots, test results, and verdict
+
+## Constraints
+
+- Reports must be fully self-contained (inline CSS, base64 images, no external dependencies except mermaid CDN).
+- Embed screenshots as base64 data URIs — never use relative file paths for images.
+- Use the CSS variables from the template for all colors — no hardcoded colors.
+- Support both light and dark mode via the `prefers-color-scheme` media query.
+- Keep reports scannable: use stat cards for key numbers, tables for details, diagrams for relationships.
+- Never touch source code. Only read project files, capture screenshots, and write to `.reports/`.
+- Always close agent-browser sessions after capturing screenshots.
+```
+
+---
+
+## 5. Optional: Shell Aliases
+
+Add to your `~/.bashrc`, `~/.zshrc`, or shell config for shortcuts outside the Kilo CLI:
+
+```bash
+# Start a Kilo session and immediately brief
+alias kbrief='kilocode --mode architect -m "Run /brief"'
+
+# Quick check on what plans are open
+alias plans='ls -la .plans/ && echo "---" && grep -l "IN_PROGRESS\|IN_REVIEW" .plans/*.md 2>/dev/null || echo "No active plans"'
+
+# Show current branch status vs main
+alias branchstat='echo "Branch: $(git branch --show-current)" && echo "Commits ahead of main:" && git log main..HEAD --oneline'
+```
+
+---
+
+## 6. Verification Checklist
+
+After setup, confirm everything works:
+
+- [ ] `AGENTS.md` exists at project root with BSER workflow section
+- [ ] `.plans/` directory exists with `backlog.md` and `_TEMPLATE.md`
+- [ ] `.kilo/agents/` directory exists with `reviewer.md`, `syncer.md`, and `reporter.md`
+- [ ] `.reports/` directory exists with `screenshots/` subdirectory
+- [ ] `ARCHITECTURE.md` exists (even if minimal)
+- [ ] `CONVENTIONS.md` exists (even if minimal)
+- [ ] `agent-browser` is installed (`agent-browser --help`)
+- [ ] `/brief` command works in Kilo CLI (type `/brief` in interactive mode)
+- [ ] `/scope` command works (test: `/scope test-setup`)
+- [ ] `/implement` command works
+- [ ] `/review` command works
+- [ ] `/sync` command works
+- [ ] `/hotfix` command works
+- [ ] `/recap` command works
+- [ ] `/impact` command works
+- [ ] `/estimate` command works
+- [ ] Reviewer agent is invocable (`@reviewer` in the CLI)
+- [ ] Syncer agent is invocable (`@syncer` in the CLI)
+- [ ] Reporter agent is invocable (`@reporter` in the CLI)
+- [ ] Delete the test branch: `git checkout main && git branch -D feat/test-setup`
+
+---
+
+## 7. Migrating from a Previous BSER Version
+
+If you have a repo already using an earlier version of the BSER framework, follow these steps to bring it up to date. Run these from the project root.
+
+### Step 1: Scaffold Missing Directories
+
+```bash
+# These are idempotent — won't overwrite existing content
+mkdir -p .kilo/agents
+mkdir -p .reports/screenshots
+mkdir -p .kilocode/commands
+```
+
+### Step 2: Remove Old Custom Modes
+
+If you previously used `.kilocodemodes` or `custom_modes.yaml` for BSER modes (`reviewer`, `syncer`), these are now subagents:
+
+```bash
+# Check if old mode config exists
+cat .kilocodemodes 2>/dev/null
+cat ~/.config/kilo/custom_modes.yaml 2>/dev/null
+```
+
+If you find `reviewer` or `syncer` mode definitions in either file, remove them. They're replaced by the subagent markdown files in `.kilo/agents/`. If the files contain other non-BSER modes you still use, keep those — just remove the BSER-specific ones.
+
+### Step 3: Install Subagents
+
+Copy the subagent definitions from section 4 of this guide into `.kilo/agents/`:
+
+- `.kilo/agents/reviewer.md` — the diff review agent (now with agent-browser live verification)
+- `.kilo/agents/syncer.md` — the post-merge doc sync agent
+- `.kilo/agents/reporter.md` — the HTML report generator (new — this is the human interface layer)
+
+If you already have these files from a previous version, **replace them entirely** with the current versions from this guide. The reporter agent is new and must be added.
+
+### Step 4: Update Slash Commands
+
+Replace all command files in `.kilocode/commands/` with the current versions from section 3 of this guide. The key changes since earlier versions:
+
+| Command | What Changed |
+|---------|-------------|
+| `/scope` | No longer takes a kebab-case argument. Accepts freeform description, derives slug. Uses `$ARGUMENTS` instead of `$1`. Now epic-branch-aware. |
+| `/epic` | **New.** Freeform description input, creates `epic/` branch. |
+| `/implement` | Now checks for `.fixlist.md` to enter targeted fix mode after review. |
+| `/review` | Now writes a `.fixlist.md` on NEEDS WORK verdict. Renderer spec for `@reporter` with screenshot embedding. |
+| `/sync` | Unchanged. |
+| `/hotfix` | Now accepts freeform description, derives slug. |
+| `/brief` | Now invokes `@reporter` — output is an HTML report, not terminal text. |
+| `/recap` | **New.** End-of-session summary via `@reporter`. |
+| `/impact` | **New.** Dependency impact analysis via `@reporter`. |
+| `/estimate` | **New.** Planned-vs-actual calibration via `@reporter`. |
+
+The safest approach is to delete all existing command files and re-create them from this guide:
+
+```bash
+rm .kilocode/commands/*.md
+# Then create each file from section 3
+```
+
+### Step 5: Update Plan Templates
+
+If you have `.plans/_TEMPLATE.md`, update it to include the new `Parent` field:
+
+```markdown
+**Status:** PLANNING | IN_PROGRESS | IN_REVIEW | COMPLETE
+**Branch:** feat/<short-name>
+**Parent:** main | epic/<epic-name>
+**Created:** <date>
+**One-liner:** <single sentence description>
+```
+
+Add the epic template if it doesn't exist:
+
+```bash
+# Check if epic template exists
+ls .plans/_EPIC_TEMPLATE.md 2>/dev/null
+```
+
+If missing, create it from section 2 of this guide.
+
+### Step 6: Update AGENTS.md
+
+If your `AGENTS.md` exists but predates the current version, update the `## BSER Workflow` section to match the template in section 1 of this guide. Key additions:
+
+- Reference to `@reporter` and `@syncer` subagents
+- The workflow rules section (TDD, no scope expansion, stop-if-plan-is-wrong)
+- Git conventions including `epic/` branch prefix
+
+If `AGENTS.md` doesn't exist, create it from the template in section 1.
+
+### Step 7: Update Existing Plan Docs
+
+Existing `.plans/*.md` files from prior versions will still work — the commands read them by slug. But for consistency, you can optionally update completed plans:
+
+```bash
+# Find plans missing the Parent field
+grep -rL "Parent:" .plans/*.md 2>/dev/null
+```
+
+For any active (IN_PROGRESS) plans, add `**Parent:** main` to the frontmatter so the review command knows the merge target. Completed plans don't need updating.
+
+### Step 8: Install agent-browser
+
+If not already installed:
+
+```bash
+npx skills add https://github.com/vercel-labs/agent-browser --skill agent-browser
+```
+
+This is used by the `reviewer` agent for live UI verification and the `reporter` agent for capturing screenshots.
+
+### Step 9: Verify
+
+Run through the verification checklist in section 6. Pay special attention to:
+
+- [ ] `@reporter` is invocable and generates HTML reports to `.reports/`
+- [ ] `/scope` accepts freeform descriptions (test: `/scope Add a health check endpoint to the API`)
+- [ ] `/brief` produces an HTML report that auto-opens in the browser
+- [ ] Old custom modes are removed and don't conflict with new subagents
+
+### Migration Cleanup Checklist
+
+```bash
+# Remove artifacts from older BSER versions that are no longer used
+rm -f .kilocodemodes                     # if it only contained BSER modes
+rm -f .plans/*.fixlist.md                # clean up any leftover fixlists from interrupted reviews
+
+# Verify no stale mode references in config
+grep -r "reviewer\|syncer" ~/.config/kilo/custom_modes.yaml 2>/dev/null && echo "⚠️  Remove BSER modes from global custom_modes.yaml"
+
+# Verify subagents are in place
+ls .kilo/agents/reviewer.md .kilo/agents/syncer.md .kilo/agents/reporter.md
+```
+
+---
+
+## Updating the Framework
+# BSER Framework — Setup Guide
+
+> One-time setup for the Brief → Scope → Execute → Review+Sync workflow.
+> After completing this guide, see **BSER-workflow.md** for daily usage.
+
+---
+
+## Prerequisites
+
+- Kilo Code CLI installed and configured
+- Git initialized in your project
+- A working Kilo config at `~/.config/kilo/` or `~/.kilocode/`
+- agent-browser installed: `npx skills add https://github.com/vercel-labs/agent-browser --skill agent-browser`
+
+---
+
+## 1. Project File Structure
+
+Create these directories and files in your project root:
+
+```bash
+mkdir -p .plans
+mkdir -p .kilocode/commands
+mkdir -p .kilo/agents
+mkdir -p .reports/screenshots
+
+touch AGENTS.md
+touch ARCHITECTURE.md
+touch CONVENTIONS.md
+touch .plans/backlog.md
+```
+
+### .gitignore Additions
+
+Add these to your project's `.gitignore`. Reports and screenshots are ephemeral outputs — they can always be regenerated. Fixlists are transient review artifacts. Test baselines *are* committed (they're part of the plan's branch).
+
+```gitignore
+# BSER ephemeral outputs
+.reports/
+.plans/*.fixlist.md
+```
+
+The following **should** be committed:
+- `.plans/*.md` (plan docs, epic docs, backlog, templates)
+- `.plans/*.baseline-tests.txt` (test baselines — needed by `/review`)
+- `AGENTS.md`, `ARCHITECTURE.md`, `CONVENTIONS.md`
+- `.kilocode/commands/*.md` (slash commands)
+- `.kilo/agents/*.md` (subagent definitions)
+
+### AGENTS.md (Starter Template)
+
+This is the project-wide agent configuration file. Every Kilo Code session — commands, subagents, and interactive — loads this automatically. It's the single place to define how agents should behave in this project.
+
+```markdown
+# AGENTS.md
+
+## Project Overview
+
+<1-2 sentence description of the project, its tech stack, and primary purpose>
+
+## BSER Workflow
+
+This project uses the BSER (Brief → Scope → Execute → Review+Sync) framework for human-in-the-loop agentic development.
+
+### Key Files
+
+- `ARCHITECTURE.md` — Living architecture doc, updated by the `@syncer` agent after each merge. Read this before making structural decisions.
+- `CONVENTIONS.md` — Coding patterns and style decisions. Follow these when writing code.
+- `.plans/` — Implementation plan documents. Every feature/fix gets a plan doc before execution.
+- `.plans/backlog.md` — Captured future work items. Append-only during work sessions.
+
+### Workflow Rules
+
+- Always read the relevant plan doc in `.plans/` before implementing. The plan is the contract.
+- Follow TDD: write tests first, then implement to make them pass.
+- Commit after each logical unit of progress with descriptive commit messages.
+- Never expand scope beyond the current plan. If you discover something new, add it to the "Future (Out of Scope)" section of the plan doc.
+- Never refactor unrelated code during a feature implementation.
+- If the plan is wrong or insufficient, stop and report the issue rather than improvising.
+
+## Code Style
+
+<Language-specific style rules, e.g.:>
+- Use TypeScript strict mode
+- Prefer named exports over default exports
+- Use descriptive variable names — no single-letter variables outside loop indices
+
+## Architecture Rules
+
+<Guard rails for structural decisions, e.g.:>
+- All new modules must be registered in ARCHITECTURE.md before implementation
+- Shared code goes in the designated shared module — do not duplicate across services
+- Database schema changes require a migration file
+
+## Testing
+
+<Testing strategy, e.g.:>
+- Unit tests for all business logic — colocate test files with source (`*.spec.ts`)
+- Integration tests for API endpoints
+- Minimum: every function in the plan's "Test Cases" section must have a corresponding test
+
+## Git Conventions
+
+- Branch naming: `feat/<name>`, `fix/<name>`, `spike/<name>`
+- Commit messages: imperative mood, lowercase, no period (`add user auth endpoint`)
+- One logical change per commit — do not bundle unrelated changes
+- Never commit directly to main during feature work
+
+## Dependencies
+
+- Check existing dependencies before adding new ones
+- Prefer standard library solutions over third-party packages when reasonable
+- Document why a new dependency was added in the plan doc's Implementation Notes
+```
+
+> **Adapt this template.** The sections above are starting points. Strip out what doesn't apply, add what does. The `## BSER Workflow` section is the most important — it tells every agent session how to behave within the framework. The rest should reflect your actual project conventions.
+
+### ARCHITECTURE.md (Starter Template)
+
+```markdown
+# Architecture
+
+> This document is maintained by the syncer agent after each feature merge.
+> Last updated: <date>
+
+## Overview
+
+<1-2 sentence description of what this project is>
+
+## Module Boundaries
+
+| Module | Responsibility | Key Files |
+|--------|---------------|-----------|
+| | | |
+
+## Data Flow
+
+<How data moves through the system — even a sentence or two is fine to start>
+
+## Key Decisions
+
+<Record non-obvious architectural decisions here. Why MongoDB over Postgres? Why NestJS? etc.>
+```
+
+### CONVENTIONS.md (Starter Template)
+
+```markdown
+# Conventions
+
+> This document is maintained by the syncer agent after each feature merge.
+> Last updated: <date>
+
+## Code Style
+
+<Naming conventions, file organization patterns, import ordering, etc.>
+
+## Patterns
+
+<Recurring patterns in this codebase — how services are structured, how errors are handled, etc.>
+
+## Testing
+
+<Testing strategy — what gets unit tested, what gets integration tested, naming conventions for test files>
+```
+
+### .plans/backlog.md (Starter Template)
+
+```markdown
+# Backlog
+
+> Append-only during work sessions. Groom between sessions if needed.
+
+## Ideas / Future Work
+
+-
+```
+
+---
+
+## 2. Plan Document Template
+
+Save this as `.plans/_TEMPLATE.md` for reference (or let the `/scope` command generate plans in this format automatically):
+
+```markdown
+# Plan: <feature-name>
+
+**Status:** PLANNING | IN_PROGRESS | IN_REVIEW | COMPLETE
+**Branch:** feat/<short-name>
+**Parent:** main | epic/<epic-name>
+**Created:** <date>
+**One-liner:** <single sentence description>
+
+## Scope
+
+<What this feature does, in 2-3 sentences max>
+
+## Files to Change
+
+- `src/module/file.ts` — <what changes>
+- `src/module/file.spec.ts` — <test cases>
+
+## Test Cases
+
+- [ ] <test case 1>
+- [ ] <test case 2>
+- [ ] <test case 3>
+
+## Implementation Notes
+
+<Key decisions, gotchas, dependencies>
+
+## Future (Out of Scope)
+
+<Anything that came up during planning but is NOT part of this task.
+Move these to .plans/backlog.md during sync.>
+
+---
+
+## Completion Log
+
+**Completed:** <date>
+**Actual changes:** <summary of what was built>
+**Deviated from plan:** <yes/no, and how>
+**Impact:** <what modules now depend on this>
+```
+
+### Epic Template
+
+For large tasks that span multiple phases — refactors, multi-module features, migrations — use an epic. An epic is a parent plan that decomposes into ordered child plans, each of which follows the normal BSER loop independently.
+
+Save this as `.plans/_EPIC_TEMPLATE.md`:
+
+```markdown
+# Epic: <epic-name>
+
+**Status:** PLANNING | IN_PROGRESS | COMPLETE
+**Branch:** epic/<epic-name>
+**Created:** <date>
+**One-liner:** <single sentence describing the full outcome>
+
+## Objective
+
+<What this epic achieves when fully complete, in 3-5 sentences. What does the codebase look like after all phases are done?>
+
+## Phases
+
+Each phase is a self-contained plan that branches from and merges back into `epic/<epic-name>`. Phases are ordered — later phases may depend on earlier ones being merged.
+
+| # | Plan | Description | Dependencies | Status |
+|---|------|-------------|-------------|--------|
+| 1 | `<epic>-phase-1-<name>` | <what this phase does> | none | PLANNING |
+| 2 | `<epic>-phase-2-<name>` | <what this phase does> | phase 1 | PLANNING |
+| 3 | `<epic>-phase-3-<name>` | <what this phase does> | phase 2 | PLANNING |
+
+## Architecture Impact
+
+<How does this epic change the system architecture? What modules are affected?>
+
+## Risks & Open Questions
+
+- <risk or question 1>
+- <risk or question 2>
+
+## Exit Criteria
+
+<How do you know the epic is done? What should be true when all phases are complete?>
+
+---
+
+## Progress Log
+
+| Phase | Started | Completed | Notes |
+|-------|---------|-----------|-------|
+| 1 | | | |
+| 2 | | | |
+| 3 | | | |
+```
+
+---
+
+## 3. Custom Slash Commands
+
+Create each of these markdown files in `.kilocode/commands/` (project-level) or `~/.kilocode/commands/` (global).
+
+**Design principle:** Every command that produces human-facing context (briefs, recaps, reviews, impact analyses, estimates) gathers its data and then invokes `@reporter` to render a visual HTML report. Action commands (scope, implement, sync, hotfix) that produce code or docs stay as terminal output. This means your primary interface for understanding the project state is always a polished, scannable report — not a wall of terminal text.
+
+### `/brief` — Phase 1: Briefing
+
+```markdown
+# .kilocode/commands/brief.md
+---
+description: Generate a project briefing to rebuild mental model before starting work
+mode: architect
+---
+Generate a development briefing for this project by gathering the following data:
+
+1. RECENT CHANGES
+   - Run `git log --oneline --since="48 hours ago"` (or since last merge to main if more recent).
+   - For each commit, note: what changed, which modules/services were touched.
+   - Check for any new dependencies or patterns introduced.
+
+2. CURRENT STATE
+   - What branch am I on? What is its status vs main?
+   - Are there uncommitted changes?
+   - Scan .plans/ for any documents with status IN_PROGRESS or IN_REVIEW.
+
+3. EPIC STATUS
+   - Check for any `epic/*` branches: `git branch --list 'epic/*'`
+   - For each active epic, read its plan doc and summarize: how many phases total, how many complete, what's the current/next phase.
+   - Flag if any epic branch has diverged significantly from main (more than 20 commits behind).
+
+4. ARCHITECTURE SNAPSHOT
+   - Read ARCHITECTURE.md. Flag anything in recent commits that contradicts, extends, or is missing from it.
+   - List the top-level module boundaries and their responsibilities.
+
+5. SUGGESTED NEXT ACTIONS
+   - Based on open plans, epic progress, and recent momentum, identify 1-3 logical next tasks.
+   - Flag anything that looks broken, half-finished, or blocking.
+
+Once you have all the data, invoke @reporter to render it as a briefing report.
+
+The report should include:
+- A stat card row: commits in last 48h, open plans count, active epics count, current branch, uncommitted file count
+- A "Recent Changes" section with a concise table of commits and affected modules
+- A "Current State" section showing branch status and open plans with their progress
+- An "Epic Progress" section (only if active epics exist) — for each epic show: phase completion as a progress bar or fraction, current phase name, and whether the epic branch needs rebasing against main
+- An architecture snapshot section — only if there are flags to raise
+- A "Suggested Next Actions" section with 1-3 prioritized tasks
+- If there are 3+ recent commits touching different modules, include a mermaid graph showing which modules were affected
+
+Save to: `.reports/brief-<YYYY-MM-DD>.html`
+```
+
+### `/scope` — Phase 2: Scoping
+
+```markdown
+# .kilocode/commands/scope.md
+---
+description: Create a scoped implementation plan and branch for a task
+mode: architect
+---
+I'm scoping a new task: "$ARGUMENTS"
+
+Follow this process:
+
+0. NAMING: From the task description above, derive:
+   - A **slug** — a short kebab-case identifier (2-4 words max) suitable for branch names and filenames. Examples: `add-xer-parser`, `fix-mongo-timeout`, `refactor-auth-service`.
+   - A **one-liner** — a single sentence description of the task.
+   Use the slug for all branch names and file names below.
+
+1. BRANCH: Determine the correct base branch:
+   - Check if the task description references an existing epic. If so, check if an epic branch `epic/<epic-slug>` exists.
+   - If an epic branch exists, branch from it: `git checkout epic/<epic-slug> && git pull && git checkout -b feat/<slug>`
+   - Otherwise, branch from main: `git checkout main && git pull && git checkout -b feat/<slug>`
+   - For bugfixes (description mentions fixing/resolving a bug), use `fix/<slug>` instead of `feat/<slug>`.
+
+2. TEST BASELINE: Run the test suite on the fresh branch **before any changes** and save the results:
+   - Run tests and capture output: `npm test 2>&1 | tee .plans/<slug>.baseline-tests.txt` (or equivalent test command)
+   - Record the pass/fail counts at the top of the file.
+   - This baseline will be used by `/review` to distinguish pre-existing failures from regressions introduced by this task.
+   - Commit the baseline: `git add .plans/<slug>.baseline-tests.txt && git commit -m "test baseline: <slug>"`
+
+3. PLAN: Create an implementation plan:
+   - List the specific functions, methods, or components to create or modify.
+   - List concrete test cases.
+   - Identify which existing modules this touches and any potential side effects.
+   - Check ARCHITECTURE.md and CONVENTIONS.md for relevant patterns to follow.
+   - If the scope feels very large, suggest decomposing into an epic via `/epic` instead.
+
+4. WRITE: Save the plan to `.plans/<slug>.md` using the template format found in `.plans/_TEMPLATE.md` (if it exists) or this structure:
+   - Status: IN_PROGRESS
+   - Branch name
+   - Parent branch (main or epic/<n>)
+   - One-liner description
+   - Scope, Files to Change, Test Cases, Implementation Notes, Future (Out of Scope)
+
+5. COMMIT: Commit the plan document: `git add .plans/<slug>.md && git commit -m "plan: <slug>"`
+
+Present the derived slug and plan for my review before committing. Keep the planning focused — if you find yourself expanding scope, add items to the "Future" section instead.
+```
+
+### `/epic` — Large Task Decomposition
+
+```markdown
+# .kilocode/commands/epic.md
+---
+description: Decompose a large task into an ordered sequence of scoped phases on a dedicated epic branch
+mode: architect
+---
+I need to plan a large task: "$ARGUMENTS"
+
+This is too big for a single plan. Decompose it into an epic with ordered phases.
+
+Follow this process:
+
+0. NAMING: From the task description above, derive:
+   - An **epic slug** — a short kebab-case identifier (2-4 words max) for the epic. Examples: `refactor-auth`, `add-reporting-module`, `migrate-to-postgres`.
+   - A **one-liner** — a single sentence describing the full outcome.
+   Use the slug for all branch names and file names below.
+
+1. BRANCH: Create a long-lived epic branch from main:
+   Run: `git checkout main && git pull && git checkout -b epic/<slug>`
+   This branch will accumulate all phase work. Individual phases will branch from and merge back into this epic branch. The epic branch merges to main only when the full epic is complete.
+
+2. UNDERSTAND: Read ARCHITECTURE.md and CONVENTIONS.md to understand the current system.
+   Identify all modules, files, and boundaries that this task will touch.
+
+3. DECOMPOSE: Break the task into 2-6 phases, where each phase:
+   - Can be implemented, reviewed, and merged independently into the epic branch
+   - Leaves the epic branch in a working state after merging (no broken intermediate states)
+   - Has clear boundaries — it's obvious what's in vs out of each phase
+
+   Common decomposition strategies:
+   - **Layer by layer:** Data model first → service layer → API → UI
+   - **Module by module:** Refactor module A → module B → module C → update shared interfaces
+   - **Vertical slice:** End-to-end for feature subset 1 → subset 2 → subset 3
+   - **Strangler fig:** New implementation alongside old → migration → cleanup old code
+
+4. ORDER: Arrange phases so dependencies flow forward. Each phase should list which earlier phases it depends on.
+
+5. WRITE: Save the epic to `.plans/<slug>.md` using the epic template format found in `.plans/_EPIC_TEMPLATE.md`.
+   - Status: IN_PROGRESS
+   - Epic branch: `epic/<slug>`
+   - Fill in the phases table with plan names following the convention: `<slug>-phase-N-<short-description>`
+   - Document architecture impact, risks, and exit criteria
+
+6. COMMIT: `git add .plans/<slug>.md && git commit -m "epic: <slug>"`
+
+Present the derived slug and decomposition for my review before committing.
+
+Then invoke @reporter to render an epic planning report.
+
+The report should include:
+- A stat card row: total phases, estimated files affected, modules touched, risk level
+- A mermaid flowchart showing phase dependencies (which phases block which)
+- A mermaid gitgraph showing the branching strategy: main → epic/<slug> → feat/phase-1 → merge back → feat/phase-2 → merge back → ... → merge epic to main
+- A phase breakdown table with description, files affected, and dependency chain
+- An architecture impact section with a before/after mermaid diagram if structural changes are involved
+- A risks & open questions section
+
+Save to: `.reports/epic-<slug>-<YYYY-MM-DD>.html`
+
+Do NOT create the individual phase plan documents yet — those will be created one at a time via `/scope` as each phase is reached. The epic document is the roadmap; the phase plans are the turn-by-turn directions.
+```
+
+### `/implement` — Phase 3: Execute
+
+```markdown
+# .kilocode/commands/implement.md
+---
+description: Continue implementing an existing plan
+mode: code
+arguments:
+  - plan_name
+---
+Continue implementing the plan in `.plans/$1.md`.
+
+Process:
+1. Read the plan document and check its current status.
+2. **Check for a fix list:** If `.plans/$1.fixlist.md` exists, this is a post-review fix cycle.
+   - Address each issue in the fix list.
+   - Check off items as you fix them.
+   - Delete the fixlist file when all issues are resolved.
+   - Skip the rest of this process — focus only on the fixes.
+3. Check git status and recent commits on this branch to understand what's already been done.
+4. Run existing tests to see current state: what passes, what fails, what's missing.
+5. Continue implementation from where it left off:
+   - Write tests first, then implement to make them pass (TDD).
+   - Follow patterns in CONVENTIONS.md.
+   - Commit after each logical unit of progress with descriptive commit messages.
+6. After completing a chunk of work, update the test case checkboxes in the plan doc.
+
+Do NOT:
+- Modify files outside the scope defined in the plan.
+- Add features not in the plan (note them in the "Future" section instead).
+- Refactor unrelated code, even if you notice opportunities.
+
+If the plan turns out to be wrong or insufficient, stop and tell me what needs to change rather than improvising.
+```
+
+### `/review` — Phase 4a: Diff Review
+
+```markdown
+# .kilocode/commands/review.md
+---
+description: Review the current branch diff against main and generate a review report
+mode: architect
+arguments:
+  - plan_name
+---
+Review the implementation on this branch against the plan in `.plans/$1.md`.
+
+Gather the following data:
+
+1. Run `git diff main..HEAD` and `git diff --stat main..HEAD` to see all changes.
+2. Read the plan document to understand what was intended.
+3. **Test suite with baseline comparison:**
+   - Run the test suite (`npm test` or equivalent) and capture current results.
+   - Read the test baseline from `.plans/$1.baseline-tests.txt` (captured during `/scope`).
+   - Compare: identify which failures are **pre-existing** (present in baseline) vs **new** (introduced by this branch).
+   - Only flag new failures as blocking issues. Pre-existing failures should be noted but NOT count against the verdict.
+4. Evaluate:
+   - **Plan alignment:** Does the implementation match what was planned? List deviations.
+   - **Scope check:** Are there changes to files NOT listed in the plan? Flag each.
+   - **Code quality:** Check naming, patterns, consistency with CONVENTIONS.md.
+   - **Test coverage:** Are all planned test cases present and passing?
+   - **Completeness:** Any TODOs, placeholder code, or commented-out blocks?
+   - **Edge cases:** Obvious error handling gaps or uncovered edge cases?
+5. Determine a verdict: **PASS** or **NEEDS WORK**.
+
+If NEEDS WORK, also write a fix list to `.plans/$1.fixlist.md`:
+```
+# Fix List: $1
+
+## Issues to Address
+
+- [ ] Issue 1: <description> — `file.ts:L42`
+  **Why this failed:** <root cause explanation — what the code does wrong and why>
+  **How to fix:** <specific guidance on the approach to take>
+
+- [ ] Issue 2: <description> — `file.ts:L87`
+  **Why this failed:** <root cause explanation>
+  **How to fix:** <specific guidance>
+
+## Context for Fix Session
+
+<Overall explanation of what went wrong. Include:
+- Which parts of the plan were implemented correctly
+- Where the implementation diverged or fell short
+- Any patterns in the issues (e.g., "all issues are related to null handling in the parser")
+- Relevant code context the implementing agent needs to understand the fix>
+```
+
+Then invoke @reporter to render a review report.
+
+The report should include:
+- A stat card row: files changed, lines added/removed, new tests passing/failing (excluding pre-existing failures), verdict (PASS as green tag, NEEDS WORK as yellow tag)
+- A "Diff Summary" table: filename, lines changed, planned vs unplanned (tag)
+- A "Review Findings" section with numbered issues, each with file reference, severity tag (🔴 blocking, 🟡 minor, 🟢 suggestion), root cause, and fix guidance
+- A "Test Results" section with two parts: **New/Changed** (tests affected by this branch — these determine the verdict) and **Pre-existing Failures** (failures present in the baseline — noted for awareness but not blocking). Show the baseline comparison clearly.
+- If there are scope deviations, a mermaid diagram showing planned files vs actual files changed
+- A "Live Verification" section if UI changes were involved — embed any screenshots from `.reports/screenshots/review-$1-*` as base64 images with captions describing what was verified
+- A "Verdict" section with clear PASS/NEEDS WORK and summary
+
+Save to: `.reports/review-$1-<YYYY-MM-DD>.html`
+```
+
+### `/sync` — Phase 4b: Post-Merge Doc Sync
+
+```markdown
+# .kilocode/commands/sync.md
+---
+description: Update project docs after merging a feature branch
+mode: code
+arguments:
+  - plan_name
+---
+The feature branch for `$1` has been merged to main. Update the project knowledge base.
+
+1. **ARCHITECTURE.md**: Read the current doc and the changes from this feature.
+   - If any structural changes were made (new modules, changed boundaries, new dependencies), update the relevant sections.
+   - If no structural changes, leave it alone — don't add noise.
+   - Update the "Last updated" date only if you made changes.
+
+2. **CONVENTIONS.md**: If any new patterns were established by this feature (new error handling approach, new testing pattern, new naming convention), document them.
+   - Only add genuinely new conventions, not one-off decisions.
+
+3. **Plan document** (`.plans/$1.md`):
+   - Set Status to COMPLETE.
+   - Fill in the Completion Log section: date, actual changes summary, whether implementation deviated from plan, and impact on other modules.
+
+4. **Backlog**: If the plan's "Future (Out of Scope)" section has items, append them to `.plans/backlog.md`.
+
+5. **Commit**: Stage and commit all doc changes: `git add -A && git commit -m "docs: sync after $1 merge"`
+
+Be concise in all updates. These docs should be scannable, not exhaustive.
+```
+
+### `/hotfix` — Escape Hatch: Quick Fix
+
+```markdown
+# .kilocode/commands/hotfix.md
+---
+description: Quick fix on a hotfix branch — skip planning, still review+sync
+mode: code
+---
+Quick hotfix: "$ARGUMENTS"
+
+1. Derive a short kebab-case slug from the description above (e.g., `fix-null-pointer-auth`, `fix-csv-export-crash`).
+2. Create branch: `git checkout main && git pull && git checkout -b fix/<slug>`
+3. Implement the fix directly. Keep changes minimal and focused.
+4. Run tests to confirm the fix works and nothing else broke.
+5. Commit with message: `fix: <slug>`
+
+After implementation, I'll run /review and /sync manually.
+Do NOT expand scope beyond the immediate fix.
+```
+
+### `/recap` — End-of-Session Summary
+
+```markdown
+# .kilocode/commands/recap.md
+---
+description: Generate an end-of-session summary report
+mode: architect
+---
+Generate an end-of-session recap by gathering the following data:
+
+1. **Git activity this session:**
+   - Run `git log --oneline --since="4 hours ago"` (adjust if needed).
+   - Summarize what was built, fixed, or changed.
+
+2. **Plan progress:**
+   - Check all `.plans/*.md` files for current status.
+   - For any IN_PROGRESS plans: what's done, what's remaining.
+
+3. **Unfinished threads:**
+   - Any failing tests? (`npm test` or equivalent, capture summary)
+   - Any TODOs added this session? (`git diff main..HEAD | grep -i "TODO"`)
+   - Any items added to the "Future" section of plan docs?
+
+4. **Recommended next steps:**
+   - What should the next session start with?
+   - Any blockers or decisions needed before continuing?
+
+Then invoke @reporter to render a recap report.
+
+The report should include:
+- A stat card row: commits this session, files changed, tests passing/failing, open plans count
+- A "Session Activity" section with a timeline or table of commits
+- An "Active Plans" section showing each plan's progress (use a progress indicator or checklist completion %)
+- An "Unfinished Threads" section — only if there are failing tests, TODOs, or blockers
+- A "Next Session" section with 1-3 prioritized recommended actions
+- If multiple plans are active, a mermaid gantt or status diagram showing their states
+
+Save to: `.reports/recap-<YYYY-MM-DD>.html`
+```
+
+### `/impact` — Dependency Impact Analysis
+
+```markdown
+# .kilocode/commands/impact.md
+---
+description: Analyze and visualize the dependency impact of a planned change
+mode: architect
+arguments:
+  - plan_name
+---
+Analyze the dependency impact of the plan in `.plans/$1.md`.
+
+For each file listed in the plan's "Files to Change" section:
+
+1. **Import graph:** What other files import from this file? Trace 2 levels deep.
+2. **Export surface:** What functions, classes, or types does this file export that others depend on?
+3. **Test coverage:** Which test files cover this module? Are there integration tests?
+4. **Shared module risk:** Does this touch shared/core modules? If so, flag the blast radius.
+
+Then invoke @reporter to render an impact analysis report.
+
+The report should include:
+- A stat card row: files in plan, direct dependents count, indirect dependents count, risk level (🟢/🟡/🔴 as colored tag)
+- A **mermaid dependency graph** showing: planned files (highlighted) → direct dependents → indirect dependents. Use different node colors for planned changes vs affected files.
+- A "File Impact Table": for each planned file, list its exports, direct dependents, and test coverage status
+- A "Risk Assessment" section with per-file risk tags and explanation
+- If risk is 🔴, a "Suggested Splits" section recommending how to break the plan into smaller pieces
+
+Save to: `.reports/impact-$1-<YYYY-MM-DD>.html`
+```
+
+### `/estimate` — Planned vs. Actual Analysis
+
+```markdown
+# .kilocode/commands/estimate.md
+---
+description: Analyze estimation accuracy across completed plans and generate a calibration report
+mode: architect
+---
+Analyze completed plans to identify estimation patterns.
+
+1. **Scan `.plans/` for all COMPLETE plans** that have a filled-in Completion Log.
+
+2. **For each completed plan, extract:**
+   - Number of files planned vs. actually changed
+   - Planned test cases vs. actual test count
+   - Whether implementation deviated from plan (and how)
+   - Time from plan creation to completion (from git dates)
+
+3. **Identify patterns:**
+   - Do plans consistently underestimate file count?
+   - Which types of tasks deviate most from their plans?
+   - Common categories of unplanned work?
+   - Typical ratio of planned scope to actual scope?
+
+Then invoke @reporter to render an estimation calibration report.
+
+The report should include:
+- A stat card row: total completed plans, average scope accuracy %, average deviation, most common surprise category
+- A "Plan Accuracy" table: plan name, planned files vs actual, planned tests vs actual, deviated (yes/no), duration
+- A mermaid bar chart or visual comparison of planned vs actual scope per plan
+- A "Patterns" section with specific calibration insights
+- A "Calibration Advice" section with concrete rules of thumb for future scoping
+
+Save to: `.reports/estimate-<YYYY-MM-DD>.html`
+```
+
+---
+
+## 4. Custom Subagents
+
+Subagents are specialized agents defined as markdown files with YAML frontmatter. They run in isolated sessions with their own prompts, models, and permissions. Place them in `.kilo/agents/` (project-level) or `~/.config/kilo/agents/` (global). The filename (minus `.md`) becomes the agent name.
+
+You can invoke them manually with `@agent-name` in the CLI, or primary agents can invoke them automatically via the Task tool.
+
+### `reviewer` — Phase 4a: Diff Review Agent
+
+```markdown
+# .kilo/agents/reviewer.md
+---
+description: Reviews the current feature branch diff against main and its plan document. Includes live verification via agent-browser when a UI is involved. Read-only — cannot edit files.
+mode: subagent
+temperature: 0.1
+permission:
+  edit: deny
+  bash:
+    "*": deny
+    "git diff*": allow
+    "git log*": allow
+    "git show*": allow
+    "npm test*": allow
+    "npm run test*": allow
+    "npx jest*": allow
+    "agent-browser *": allow
+---
+
+You are a senior code reviewer. Your job is to review the diff of the current feature branch against main, comparing the implementation to its plan document in `.plans/`.
+
+## Review Process
+
+1. Read the plan document to understand what was intended.
+2. Run `git diff main..HEAD` to see all changes.
+3. Run the test suite to confirm tests pass.
+4. Evaluate the implementation against these criteria:
+
+**Plan alignment:** Does the implementation match what was planned? List deviations.
+**Scope check:** Are there changes to files NOT listed in the plan? Flag each one.
+**Code quality:** Check naming, patterns, consistency with CONVENTIONS.md.
+**Test coverage:** Are all planned test cases present and passing?
+**Completeness:** Any TODOs, placeholder code, or commented-out blocks?
+**Edge cases:** Obvious error handling gaps or uncovered edge cases?
+
+5. **Live verification (when applicable):** If the plan involves UI changes (components, pages, styles, routes), verify them in the running app using agent-browser:
+
+```bash
+# Navigate to the relevant page
+agent-browser open http://localhost:4200/<relevant-route>
+agent-browser wait --load networkidle
+
+# Take a screenshot as evidence for the review report
+agent-browser screenshot .reports/screenshots/review-<plan-name>-<context>.png
+
+# Snapshot interactive elements and verify the expected UI is present
+agent-browser snapshot -i
+
+# Check specific elements if the plan mentions them
+agent-browser get text @e<n>
+
+# If the feature involves forms, navigation, or interactions — walk through them
+# Document what works and what doesn't
+```
+
+Skip live verification if:
+- The plan is backend-only (no UI changes)
+- The dev server is not running (note this in the review, don't fail for it)
+- The changes are purely test/config/docs
+
+When you take screenshots during live verification, save them to `.reports/screenshots/` — they will be embedded in the review report by @reporter.
+
+## Output Format
+
+Provide a summary:
+- **Verdict: PASS** or **NEEDS WORK**
+- **Issues:** Numbered list with file and line references
+- **Live verification result:** What was checked in the browser, what passed, what failed (if applicable)
+- **Screenshots:** List paths to any screenshots taken
+- **Suggestions:** Optional non-blocking improvements
+
+Be thorough but pragmatic. Minor style issues are not blockers.
+
+## Constraints
+
+- Never edit or create files. Only read, analyze, and report.
+- Always reference the plan document when evaluating.
+- Always run the test suite as part of the review.
+- Only use agent-browser for verification — never use it to make changes.
+```
+
+### `syncer` — Phase 4b: Post-Merge Doc Sync Agent
+
+```markdown
+# .kilo/agents/syncer.md
+---
+description: Updates ARCHITECTURE.md, CONVENTIONS.md, and plan docs after a feature branch merge. Only edits markdown files.
+mode: subagent
+permission:
+  edit:
+    "*": deny
+    "*.md": allow
+    "*.mdx": allow
+  bash:
+    "*": deny
+    "git add*": allow
+    "git commit*": allow
+    "git log*": allow
+    "git diff*": allow
+---
+
+You are a documentation maintainer. After a feature has been merged to main, you update the project's living documentation to reflect what was actually built.
+
+## Sync Process
+
+1. Run `git log main~5..main --oneline` to see what was just merged.
+2. Read the relevant plan document in `.plans/`.
+3. Update documentation:
+
+**ARCHITECTURE.md** — If structural changes were made (new modules, changed boundaries, new dependencies), update the relevant sections. If no structural changes, leave it alone. Update "Last updated" only if you made changes.
+
+**CONVENTIONS.md** — If new patterns were established (new error handling approach, testing pattern, naming convention), document them. Only add genuinely new conventions, not one-off decisions.
+
+**Plan document** — Set Status to COMPLETE. Fill in the Completion Log: date, actual changes summary, deviation from plan, impact on other modules.
+
+**Backlog** — If the plan's "Future (Out of Scope)" section has items, append them to `.plans/backlog.md`.
+
+4. Commit: `git add -A && git commit -m "docs: sync after merge"`
+
+## Constraints
+
+- Only edit markdown files. Never touch source code.
+- Be concise — these docs should be scannable, not exhaustive.
+- Don't add noise. If nothing changed structurally, don't update ARCHITECTURE.md just to update it.
+```
+
+### `reporter` — Human Interface Report Generator
+
+This is the most important subagent in the framework. Every piece of context that needs to be transferred from the agents to you — briefs, recaps, reviews, impact analyses, estimates — is rendered by the reporter as a polished HTML report. The reporter is the universal rendering layer between the BSER system and the human developer.
+
+The slash commands (`/brief`, `/recap`, `/review`, `/impact`, `/estimate`) gather data, then invoke `@reporter` to render it. You can also invoke `@reporter` directly for ad-hoc reports.
+
+```markdown
+# .kilo/agents/reporter.md
+---
+description: The human interface layer for the BSER framework. Renders all developer-facing context (briefs, recaps, reviews, impact analyses, estimates) as polished HTML+CSS reports with mermaid diagrams. Invoked by other commands to present their findings visually. Can also be invoked directly for ad-hoc reports.
+mode: subagent
+permission:
+  edit:
+    "*": deny
+    ".reports/*.html": allow
+    ".reports/**/*.html": allow
+  bash:
+    "*": deny
+    "git log*": allow
+    "git diff*": allow
+    "git shortlog*": allow
+    "git rev-list*": allow
+    "find*": allow
+    "wc*": allow
+    "grep*": allow
+    "cat .plans/*": allow
+    "ls*": allow
+    "mkdir*": allow
+    "open *": allow
+    "xdg-open *": allow
+    "agent-browser *": allow
+    "base64 *": allow
+    "cat .reports/screenshots/*": allow
+---
+
+You are a report generator. You create polished, standalone HTML reports with embedded CSS and mermaid diagrams. Reports are self-contained single-file HTML documents that can be opened in any browser.
+
+You also have access to `agent-browser` for capturing screenshots of live applications, dashboards, or any web content that should be included in a report. Use this when asked to include visual evidence or when generating reports that benefit from live screenshots (e.g., deployment verification, dashboard snapshots).
+
+## Output Location
+
+All reports go to `.reports/` in the project root. Create the directory if it doesn't exist.
+Screenshots go to `.reports/screenshots/`. They may already exist from the reviewer agent — embed them.
+
+Name files descriptively: `.reports/project-brief-2025-01-15.html`, `.reports/sprint-recap.html`, etc.
+
+**Always open the report in the default browser after creating it:**
+```bash
+# macOS
+open .reports/report-name.html
+
+# Linux
+xdg-open .reports/report-name.html
+```
+Detect the platform and use the appropriate command. This is non-negotiable — every report must be opened automatically so the developer sees it immediately.
+
+## Report Template
+
+Every report must use this base structure:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{REPORT_TITLE}}</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({startOnLoad: true, theme: 'neutral'});</script>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #1a1a2e;
+      --accent: #e76f51;
+      --accent2: #2d6a4f;
+      --muted: #6c757d;
+      --border: #dee2e6;
+      --surface: #f8f9fa;
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1a2e;
+        --fg: #e6e6e6;
+        --accent: #e76f51;
+        --accent2: #52b788;
+        --muted: #9ca3af;
+        --border: #2d2d44;
+        --surface: #16213e;
+      }
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    h1 { font-size: 1.8rem; margin-bottom: 0.25rem; }
+    h2 { font-size: 1.3rem; margin-top: 2rem; margin-bottom: 0.75rem; color: var(--accent2); border-bottom: 2px solid var(--border); padding-bottom: 0.25rem; }
+    h3 { font-size: 1.1rem; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+    p, li { margin-bottom: 0.5rem; }
+    .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin: 1rem 0; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center; }
+    .stat-card .value { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
+    .stat-card .label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+    th, td { padding: 0.5rem 0.75rem; border: 1px solid var(--border); text-align: left; }
+    th { background: var(--surface); font-weight: 600; }
+    .tag { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .tag-green { background: #d4edda; color: #155724; }
+    .tag-yellow { background: #fff3cd; color: #856404; }
+    .tag-red { background: #f8d7da; color: #721c24; }
+    .tag-blue { background: #d1ecf1; color: #0c5460; }
+    code { font-family: var(--mono); font-size: 0.85em; background: var(--surface); padding: 0.15rem 0.35rem; border-radius: 3px; }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; overflow-x: auto; margin: 1rem 0; }
+    pre code { background: none; padding: 0; }
+    .mermaid { margin: 1.5rem 0; text-align: center; }
+    .screenshot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1rem; margin: 1rem 0; }
+    .screenshot { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .screenshot img { width: 100%; display: block; }
+    .screenshot .caption { padding: 0.5rem 0.75rem; font-size: 0.8rem; color: var(--muted); background: var(--surface); }
+    footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <!-- Report content here -->
+  <footer>Generated by BSER Reporter · {{DATE}}</footer>
+</body>
+</html>
+```
+
+## Mermaid Diagrams
+
+Use mermaid for all visual elements. Common patterns:
+
+- **Architecture diagrams:** `graph TD` or `graph LR` for module relationships
+- **Timelines:** `gantt` for plan progress over time
+- **Status breakdowns:** `pie` for distribution of plan statuses
+- **Flow diagrams:** `flowchart` for data flow or process visualization
+- **Git history:** `gitgraph` for branch/merge visualization
+
+Wrap mermaid in: `<pre class="mermaid">graph TD; A-->B;</pre>`
+
+## Screenshots & Visual Evidence
+
+Screenshots can come from two sources:
+1. **Pre-captured by the reviewer agent** — saved to `.reports/screenshots/` during live verification
+2. **Captured by you (the reporter)** — using `agent-browser` when building reports that need live visuals
+
+### Embedding Screenshots
+
+Embed screenshots as base64 data URIs so reports stay fully self-contained:
+
+```bash
+# Convert screenshot to base64 for embedding
+base64 -i .reports/screenshots/review-feature-home.png
+```
+
+Then embed in HTML:
+```html
+<div class="screenshot-grid">
+  <div class="screenshot">
+    <img src="data:image/png;base64,{{BASE64_DATA}}" alt="Home page after changes">
+    <div class="caption">Home page — post-implementation</div>
+  </div>
+</div>
+```
+
+### Capturing Screenshots with agent-browser
+
+When you need live screenshots for a report (dashboards, deployed apps, external tools):
+
+```bash
+# Capture a specific page
+agent-browser open http://localhost:4200/dashboard
+agent-browser wait --load networkidle
+agent-browser screenshot .reports/screenshots/dashboard-current.png
+
+# Full page capture
+agent-browser screenshot --full .reports/screenshots/page-full.png
+
+# Capture a specific section (scope to selector)
+agent-browser snapshot -s "#metrics-panel"
+agent-browser screenshot .reports/screenshots/metrics-panel.png
+
+# Close when done
+agent-browser close
+```
+
+Always close the browser session when finished capturing.
+
+## Report Types
+
+When asked to generate a report, infer the type from context or ask. Common types:
+
+- **Project Brief:** Overview of architecture, module boundaries, recent activity, open plans
+- **Sprint Recap:** What was completed, what's in progress, velocity metrics from plan history
+- **Impact Analysis:** Visual dependency graph of a planned change's blast radius
+- **Estimation Report:** Planned-vs-actual analysis with calibration insights
+- **Architecture Map:** Visual module diagram with responsibilities and dependencies
+- **Review Report:** Diff review findings with live verification screenshots, test results, and verdict
+
+## Constraints
+
+- Reports must be fully self-contained (inline CSS, base64 images, no external dependencies except mermaid CDN).
+- Embed screenshots as base64 data URIs — never use relative file paths for images.
+- Use the CSS variables from the template for all colors — no hardcoded colors.
+- Support both light and dark mode via the `prefers-color-scheme` media query.
+- Keep reports scannable: use stat cards for key numbers, tables for details, diagrams for relationships.
+- Never touch source code. Only read project files, capture screenshots, and write to `.reports/`.
+- Always close agent-browser sessions after capturing screenshots.
+```
+
+---
+
+## 5. Optional: Shell Aliases
+
+Add to your `~/.bashrc`, `~/.zshrc`, or shell config for shortcuts outside the Kilo CLI:
+
+```bash
+# Start a Kilo session and immediately brief
+alias kbrief='kilocode --mode architect -m "Run /brief"'
+
+# Quick check on what plans are open
+alias plans='ls -la .plans/ && echo "---" && grep -l "IN_PROGRESS\|IN_REVIEW" .plans/*.md 2>/dev/null || echo "No active plans"'
+
+# Show current branch status vs main
+alias branchstat='echo "Branch: $(git branch --show-current)" && echo "Commits ahead of main:" && git log main..HEAD --oneline'
+```
+
+---
+
+## 6. Verification Checklist
+
+After setup, confirm everything works:
+
+- [ ] `AGENTS.md` exists at project root with BSER workflow section
+- [ ] `.plans/` directory exists with `backlog.md` and `_TEMPLATE.md`
+- [ ] `.kilo/agents/` directory exists with `reviewer.md`, `syncer.md`, and `reporter.md`
+- [ ] `.reports/` directory exists with `screenshots/` subdirectory
+- [ ] `ARCHITECTURE.md` exists (even if minimal)
+- [ ] `CONVENTIONS.md` exists (even if minimal)
+- [ ] `agent-browser` is installed (`agent-browser --help`)
+- [ ] `/brief` command works in Kilo CLI (type `/brief` in interactive mode)
+- [ ] `/scope` command works (test: `/scope test-setup`)
+- [ ] `/implement` command works
+- [ ] `/review` command works
+- [ ] `/sync` command works
+- [ ] `/hotfix` command works
+- [ ] `/recap` command works
+- [ ] `/impact` command works
+- [ ] `/estimate` command works
+- [ ] Reviewer agent is invocable (`@reviewer` in the CLI)
+- [ ] Syncer agent is invocable (`@syncer` in the CLI)
+- [ ] Reporter agent is invocable (`@reporter` in the CLI)
+- [ ] Delete the test branch: `git checkout main && git branch -D feat/test-setup`
+
+---
+
+## 7. Migrating from a Previous BSER Version
+
+If you have a repo already using an earlier version of the BSER framework, follow these steps to bring it up to date. Run these from the project root.
+
+### Step 1: Scaffold Missing Directories
+
+```bash
+# These are idempotent — won't overwrite existing content
+mkdir -p .kilo/agents
+mkdir -p .reports/screenshots
+mkdir -p .kilocode/commands
+```
+
+### Step 2: Remove Old Custom Modes
+
+If you previously used `.kilocodemodes` or `custom_modes.yaml` for BSER modes (`reviewer`, `syncer`), these are now subagents:
+
+```bash
+# Check if old mode config exists
+cat .kilocodemodes 2>/dev/null
+cat ~/.config/kilo/custom_modes.yaml 2>/dev/null
+```
+
+If you find `reviewer` or `syncer` mode definitions in either file, remove them. They're replaced by the subagent markdown files in `.kilo/agents/`. If the files contain other non-BSER modes you still use, keep those — just remove the BSER-specific ones.
+
+### Step 3: Install Subagents
+
+Copy the subagent definitions from section 4 of this guide into `.kilo/agents/`:
+
+- `.kilo/agents/reviewer.md` — the diff review agent (now with agent-browser live verification)
+- `.kilo/agents/syncer.md` — the post-merge doc sync agent
+- `.kilo/agents/reporter.md` — the HTML report generator (new — this is the human interface layer)
+
+If you already have these files from a previous version, **replace them entirely** with the current versions from this guide. The reporter agent is new and must be added.
+
+### Step 4: Update Slash Commands
+
+Replace all command files in `.kilocode/commands/` with the current versions from section 3 of this guide. The key changes since earlier versions:
+
+| Command | What Changed |
+|---------|-------------|
+| `/scope` | No longer takes a kebab-case argument. Accepts freeform description, derives slug. Uses `$ARGUMENTS` instead of `$1`. Now epic-branch-aware. |
+| `/epic` | **New.** Freeform description input, creates `epic/` branch. |
+| `/implement` | Now checks for `.fixlist.md` to enter targeted fix mode after review. |
+| `/review` | Now writes a `.fixlist.md` on NEEDS WORK verdict. Renderer spec for `@reporter` with screenshot embedding. |
+| `/sync` | Unchanged. |
+| `/hotfix` | Now accepts freeform description, derives slug. |
+| `/brief` | Now invokes `@reporter` — output is an HTML report, not terminal text. |
+| `/recap` | **New.** End-of-session summary via `@reporter`. |
+| `/impact` | **New.** Dependency impact analysis via `@reporter`. |
+| `/estimate` | **New.** Planned-vs-actual calibration via `@reporter`. |
+
+The safest approach is to delete all existing command files and re-create them from this guide:
+
+```bash
+rm .kilocode/commands/*.md
+# Then create each file from section 3
+```
+
+### Step 5: Update Plan Templates
+
+If you have `.plans/_TEMPLATE.md`, update it to include the new `Parent` field:
+
+```markdown
+**Status:** PLANNING | IN_PROGRESS | IN_REVIEW | COMPLETE
+**Branch:** feat/<short-name>
+**Parent:** main | epic/<epic-name>
+**Created:** <date>
+**One-liner:** <single sentence description>
+```
+
+Add the epic template if it doesn't exist:
+
+```bash
+# Check if epic template exists
+ls .plans/_EPIC_TEMPLATE.md 2>/dev/null
+```
+
+If missing, create it from section 2 of this guide.
+
+### Step 6: Update AGENTS.md
+
+If your `AGENTS.md` exists but predates the current version, update the `## BSER Workflow` section to match the template in section 1 of this guide. Key additions:
+
+- Reference to `@reporter` and `@syncer` subagents
+- The workflow rules section (TDD, no scope expansion, stop-if-plan-is-wrong)
+- Git conventions including `epic/` branch prefix
+
+If `AGENTS.md` doesn't exist, create it from the template in section 1.
+
+### Step 7: Update Existing Plan Docs
+
+Existing `.plans/*.md` files from prior versions will still work — the commands read them by slug. But for consistency, you can optionally update completed plans:
+
+```bash
+# Find plans missing the Parent field
+grep -rL "Parent:" .plans/*.md 2>/dev/null
+```
+
+For any active (IN_PROGRESS) plans, add `**Parent:** main` to the frontmatter so the review command knows the merge target. Completed plans don't need updating.
+
+### Step 8: Install agent-browser
+
+If not already installed:
+
+```bash
+npx skills add https://github.com/vercel-labs/agent-browser --skill agent-browser
+```
+
+This is used by the `reviewer` agent for live UI verification and the `reporter` agent for capturing screenshots.
+
+### Step 9: Verify
+
+Run through the verification checklist in section 6. Pay special attention to:
+
+- [ ] `@reporter` is invocable and generates HTML reports to `.reports/`
+- [ ] `/scope` accepts freeform descriptions (test: `/scope Add a health check endpoint to the API`)
+- [ ] `/brief` produces an HTML report that auto-opens in the browser
+- [ ] Old custom modes are removed and don't conflict with new subagents
+
+### Migration Cleanup Checklist
+
+```bash
+# Remove artifacts from older BSER versions that are no longer used
+rm -f .kilocodemodes                     # if it only contained BSER modes
+rm -f .plans/*.fixlist.md                # clean up any leftover fixlists from interrupted reviews
+
+# Verify no stale mode references in config
+grep -r "reviewer\|syncer" ~/.config/kilo/custom_modes.yaml 2>/dev/null && echo "⚠️  Remove BSER modes from global custom_modes.yaml"
+
+# Verify subagents are in place
+ls .kilo/agents/reviewer.md .kilo/agents/syncer.md .kilo/agents/reporter.md
+```
+
+---
+
+## Updating the Framework
+
+This setup is meant to evolve. Common adjustments:
+
+- **Tweak command prompts** as you learn what works for your projects. The prompts in `.kilocode/commands/` are just markdown — edit freely.
+- **Add project-specific commands** in `.kilocode/commands/` that override the global ones when a project needs different behavior (e.g., Apollo's `/brief` might include service health checks).
+- **Add subagents** for other workflows you formalize (e.g., a `spike-explorer` agent with read-only permissions for codebase exploration before scoping).
+- **Tune subagent permissions** — the `reviewer` and `syncer` permission blocks can be adjusted per project (e.g., allow `cargo test` instead of `npm test`).
+- **Adjust the plan template** based on what information you actually reference during implementation.
+
+Once setup is complete, see **BSER-workflow.md** for daily usage.
+This setup is meant to evolve. Common adjustments:
+
+- **Tweak command prompts** as you learn what works for your projects. The prompts in `.kilocode/commands/` are just markdown — edit freely.
+- **Add project-specific commands** in `.kilocode/commands/` that override the global ones when a project needs different behavior (e.g., Apollo's `/brief` might include service health checks).
+- **Add subagents** for other workflows you formalize (e.g., a `spike-explorer` agent with read-only permissions for codebase exploration before scoping).
+- **Tune subagent permissions** — the `reviewer` and `syncer` permission blocks can be adjusted per project (e.g., allow `cargo test` instead of `npm test`).
+- **Adjust the plan template** based on what information you actually reference during implementation.
+
+Once setup is complete, see **BSER-workflow.md** for daily usage.
