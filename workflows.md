@@ -228,9 +228,9 @@ gitGraph
    ```
 
 3. **Re-evaluate between phases.** After merging each phase, before scoping the next one:
-    - Run `/brief` — your mental model needs refreshing because the epic branch just changed.
-    - Re-read the epic doc. Does the next phase still make sense?
-    - If the decomposition needs adjustment, update the epic doc's phases table.
+   - Run `/brief` — your mental model needs refreshing because the epic branch just changed.
+   - Re-read the epic doc. Does the next phase still make sense?
+   - If the decomposition needs adjustment, update the epic doc's phases table.
 
 4. **Merge the epic to main** when all phases are complete and the exit criteria are met:
    ```bash
@@ -345,6 +345,10 @@ Do it on main. Still run `/sync <name>` after if it changed anything meaningful.
 | `/recap` | — | End-of-session summary |
 | `/impact <slug>` | 2 | Dependency impact analysis before implementing |
 | `/estimate` | — | Planned-vs-actual calibration across completed plans |
+
+**Committed files:** `.bser-version`, `.plans/*.md`, `AGENTS.md`, `ARCHITECTURE.md`, `CONVENTIONS.md`, `.kilocode/commands/*.md`, `.kilo/agents/*.md`
+
+**Check BSER version:** `cat .bser-version`
 
 | Subagent | Invocation | Purpose |
 |----------|-----------|---------|
