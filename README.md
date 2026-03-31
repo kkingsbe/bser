@@ -2,95 +2,78 @@
 
 **Brief → Scope → Execute → Review+Sync**
 
-A structured methodology for human-in-the-loop agentic development with CLI coding agents. Built for [Kilo Code CLI](https://kilo.ai/cli), but the principles apply to any agent-assisted workflow.
+BSER is a structured methodology for human-in-the-loop agentic development with CLI coding agents. Built for [Kilo Code CLI](https://kilo.ai/cli), but the principles apply to any agent-assisted workflow.
 
-```mermaid
-graph LR
-    B["<b>BRIEF</b><br/>rebuild mental model"]
-    S["<b>SCOPE</b><br/>decide + plan"]
-    E["<b>EXECUTE</b><br/>steer the agent"]
-    R["<b>REVIEW+SYNC</b><br/>verify + update docs"]
+## Self-Bootstrapping
 
-    B --> S --> E --> R --> B
+This repository **is** the BSER framework. To use it in your own project, bootstrap it into your Kilo CLI instance:
 
-    style B fill:#2d6a4f,stroke:#1b4332,color:#fff
-    style S fill:#1d3557,stroke:#0d1b2a,color:#fff
-    style E fill:#e76f51,stroke:#c1440e,color:#fff
-    style R fill:#2d6a4f,stroke:#1b4332,color:#fff
-```
+1. Copy `bootstrap.md` from this repository into your Kilo config directory (typically `~/.kilo/bootstrap.md`)
+2. When you start a new Kilo session, the CLI detects the bootstrap file and uses it to set up the BSER framework in your project
 
-## The Problem
+The bootstrap process copies all BSER components—slash commands, subagents, templates, and living documentation—into your project on session start.
 
-Autonomous coding agents can run for hours unsupervised. But when *you're* in the loop — steering the agent, making decisions, reviewing output — the bottleneck shifts to you. You end up simultaneously playing architect, PM, developer, and reviewer, with no structure telling you which hat to wear when.
+## Feature Overview
 
-BSER fixes this by splitting agentic work into four phases with clear boundaries. The agent handles the heavy lifting in phases 1 and 4 (briefing and review/sync), while you focus your energy on phases 2 and 3 (deciding what to build and steering the implementation).
+### Workflow Methodology
 
-## What's in the Box
+BSER divides agentic work into four phases:
 
-| Component | What It Does |
-|-----------|-------------|
-| **Slash commands** | `/brief`, `/scope`, `/epic`, `/implement`, `/review`, `/sync`, `/recap`, `/impact`, `/estimate`, `/hotfix` — each one is a markdown file with a prompt template |
-| **Subagents** | `@reviewer` (read-only code review with live browser verification), `@syncer` (post-merge doc updates), `@reporter` (HTML report generator — the human interface layer) |
-| **Living docs** | `AGENTS.md`, `ARCHITECTURE.md`, `CONVENTIONS.md` — updated automatically by the sync phase, not manually maintained |
-| **Plan documents** | `.plans/` directory with per-task plans, epic decomposition docs, test baselines, and a backlog |
-| **Visual reports** | Every human-facing output (briefs, reviews, recaps, impact analyses) is rendered as a polished HTML report with mermaid diagrams and auto-opens in your browser |
+1. **Brief** — Rebuild your mental model. Understand what changed, what's in progress, what's next.
+2. **Scope** — Decide what to build and plan the approach. Plans are the contract between you and the agent.
+3. **Execute** — Steer the agent through implementation against the plan.
+4. **Review+Sync** — Verify output and update documentation as a side effect of every change.
 
-## Key Ideas
+### Slash Commands
 
-**Your mental model is the bottleneck.** Every session starts with `/brief`, which generates a visual report of what changed, what's in progress, and what to do next. You never start cold.
+| Command | Purpose |
+|---------|---------|
+| `/brief` | Generate a visual snapshot of project state |
+| `/scope` | Define and plan a task |
+| `/epic` | Decompose large work into ordered phases |
+| `/implement` | Execute implementation against a plan |
+| `/review` | Verify output and run tests |
+| `/sync` | Update living documentation |
+| `/hotfix` | Quick-fix workflow with review |
+| `/recap` | End-of-session summary |
+| `/impact` | Analyze effect of changes |
+| `/estimate` | Size task effort |
 
-**Plans are the contract.** Every task gets a plan document before implementation begins. The agent implements against the plan, the review checks against the plan, and scope creep gets captured in a "Future" section instead of leaking into the current task.
+### Subagents
 
-**Epics decompose large work.** Multi-module refactors and large features use `/epic` to create a dedicated long-lived branch with ordered phases. Each phase follows the normal BSER loop and merges back into the epic branch. Main stays clean until the epic is done.
+- **`@reviewer`** — Read-only code review with live browser verification. Checks that UI changes render correctly and screenshots are captured.
+- **`@syncer`** — Post-merge documentation updates. Keeps ARCHITECTURE.md and CONVENTIONS.md current as a side effect of changes.
+- **`@reporter`** — HTML report generator. Renders briefs, reviews, recaps, and analyses as polished self-contained HTML with stat cards, tables, mermaid diagrams, and embedded screenshots.
 
-**The reporter is the human interface.** All context transfer from agents to you flows through the `@reporter` subagent, which renders self-contained HTML reports with stat cards, tables, mermaid diagrams, and embedded screenshots. No more skimming walls of terminal text.
+### Living Documents
 
-**Docs stay alive automatically.** `ARCHITECTURE.md` and `CONVENTIONS.md` are updated as a side effect of every merge via the sync phase — not as a separate chore you schedule and skip.
+- **AGENTS.md** — Project-wide agent behavior rules
+- **ARCHITECTURE.md** — Auto-updated system design documentation
+- **CONVENTIONS.md** — Auto-updated coding patterns and decisions
+
+### Plan Documents
+
+The `.plans/` directory contains per-task plans, epic decomposition docs, and a backlog. Every task gets a plan before implementation begins. The agent implements against the plan; scope creep gets captured in a "Future" section.
+
+### Visual Reports
+
+Every human-facing output renders as a polished HTML report. Reports open automatically in your browser and include mermaid diagrams, stat cards, tables, and embedded screenshots.
+
+### Epic Branch Support
+
+Multi-module refactors and large features use `/epic` to create a dedicated long-lived branch with ordered phases. Each phase follows the normal BSER loop and merges back into the epic branch. Main stays clean until the epic is complete.
 
 ## Getting Started
 
-1. Read **[BSER-setup.md](BSER-setup.md)** — one-time setup guide with all the files, commands, subagents, and templates
-2. Read **[BSER-workflow.md](BSER-workflow.md)** — daily reference for how to actually work (assumes setup is done)
-
-If you're migrating a project from an earlier version, see the migration section in the setup guide.
+1. Copy `bootstrap.md` from this repository to `~/.kilo/bootstrap.md`
+2. Start a new Kilo session in your project directory
+3. Run `/brief` to begin
 
 ## Requirements
 
 - [Kilo Code CLI](https://kilo.ai/cli)
 - Git
-- [agent-browser](https://github.com/vercel-labs/agent-browser) (for live UI verification and screenshot capture)
-
-## Project Structure
-
-```
-your-project/
-├── AGENTS.md                    # Project-wide agent behavior rules
-├── ARCHITECTURE.md              # Living architecture doc (auto-updated)
-├── CONVENTIONS.md               # Coding patterns and decisions (auto-updated)
-├── .plans/
-│   ├── _TEMPLATE.md             # Plan document template
-│   ├── _EPIC_TEMPLATE.md        # Epic decomposition template
-│   ├── backlog.md               # Captured future work items
-│   ├── add-xer-parser.md        # Example: task plan
-│   └── refactor-auth.md         # Example: epic plan
-├── .kilocode/commands/
-│   ├── brief.md                 # /brief command
-│   ├── scope.md                 # /scope command
-│   ├── epic.md                  # /epic command
-│   ├── implement.md             # /implement command
-│   ├── review.md                # /review command
-│   ├── sync.md                  # /sync command
-│   ├── recap.md                 # /recap command
-│   ├── impact.md                # /impact command
-│   ├── estimate.md              # /estimate command
-│   └── hotfix.md                # /hotfix command
-├── .kilo/agents/
-│   ├── reviewer.md              # Code review subagent
-│   ├── syncer.md                # Doc sync subagent
-│   └── reporter.md              # HTML report generator subagent
-└── .reports/                    # Generated reports (gitignored)
-    └── screenshots/             # Review screenshots (gitignored)
-```
+- [agent-browser](https://github.com/vercel-labs/agent-browser) — for live UI verification and screenshot capture
 
 ## License
 
