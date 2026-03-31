@@ -8,8 +8,8 @@ BSER is a structured methodology for human-in-the-loop agentic development with 
 
 This repository **is** the BSER framework. To use it in your own project, bootstrap it into your Kilo CLI instance:
 
-1. Copy `bootstrap.md` from this repository into your Kilo config directory (typically `~/.kilo/bootstrap.md`)
-2. When you start a new Kilo session, the CLI detects the bootstrap file and uses it to set up the BSER framework in your project
+1. Copy the contents of `bootstrap.md` from this repository into a fresh chat with your Kilo CLI agent
+2. It will bootstrap and/or update and migrate your project to use the latest version of BSER
 
 The bootstrap process copies all BSER components—slash commands, subagents, templates, and living documentation—into your project on session start.
 
