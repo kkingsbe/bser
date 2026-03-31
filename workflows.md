@@ -29,6 +29,21 @@ graph LR
 
 ---
 
+## Examples
+
+Real-world examples demonstrating BSER in action are available in `setup/examples/`:
+
+| Type | Location | Use Case |
+|------|----------|----------|
+| [Feature Workflow](../setup/examples/workflows/feature-workflow.md) | Full BSER loop walkthrough | Learning BSER or starting a feature |
+| [Bugfix Workflow](../setup/examples/workflows/bugfix-workflow.md) | Fast-path bugfix | Quick fixes with minimal overhead |
+| [Epic Workflow](../setup/examples/workflows/epic-workflow.md) | Multi-phase epic walkthrough | Large tasks requiring decomposition |
+| [Payment Refactor Scenario](../setup/examples/scenarios/payment-refactor.md) | Complex migration pattern | High-risk refactors with parallel run |
+
+See [setup/examples/README.md](../setup/examples/README.md) for the full index.
+
+---
+
 ## Phase 1: Brief
 
 **Duration:** ≤5 minutes. **Your role:** Read.

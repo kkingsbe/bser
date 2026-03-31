@@ -122,6 +122,8 @@ These templates are used by `/scope` and `/epic` commands to generate new plans.
 
 Create each slash command by reading from `setup/commands/` and writing to `.kilocode/commands/`:
 
+> **Examples:** See `setup/examples/` for walkthroughs showing each command in context. [Feature Workflow Example](../setup/examples/workflows/feature-workflow.md) demonstrates the full loop; [Epic Workflow Example](../setup/examples/workflows/epic-workflow.md) shows `/epic` decomposition.
+
 | Command | Source | Target |
 |---------|--------|--------|
 | `/brief` | `setup/commands/brief.md` | `.kilocode/commands/brief.md` |
