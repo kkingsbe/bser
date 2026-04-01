@@ -38,7 +38,7 @@ This project uses the BSER (Brief → Scope → Execute → Review+Sync) framewo
 
 ### Key Files
 
-- `ARCHITECTURE.md` — Living architecture doc, updated by the `@syncer` agent after each merge. Read this before making structural decisions.
+- `ARCHITECTURE.md` — Living architecture doc, reconciled to the codebase by the `@syncer` agent. Read this before making structural decisions.
 - `CONVENTIONS.md` — Coding patterns and style decisions. Follow these when writing code.
 - `.plans/` — Implementation plan documents. Every feature/fix gets a plan doc before execution.
 - `.plans/backlog.md` — Captured future work items. Append-only during work sessions.
@@ -79,8 +79,17 @@ Every plan document should be tagged with one of these categories in its frontma
 
 <Testing strategy, e.g.:>
 - Unit tests for all business logic — colocate test files with source (`*.spec.ts`)
-- Integration tests for API endpoints
-- Minimum: every function in the plan's "Test Cases" section must have a corresponding test
+- Integration tests for API endpoints and cross-module interactions
+
+### Test Depth Requirements
+
+Every plan organizes test cases into three categories. All three must be covered:
+
+- **Happy path:** Expected usage — verify the code works with valid input.
+- **Error & boundary:** Invalid input, null/empty values, out-of-range data, type mismatches, missing dependencies. For every function you write, test at least one failure mode.
+- **Integration:** Verify interactions between the changed components and their callers/dependencies. If you changed a service that an API route calls, test the route→service path together.
+
+A test that only calls a function with perfect input and asserts `!= null` is not a useful test. Test *behavior*, not just execution.
 
 ## Git Conventions
 

@@ -1,7 +1,7 @@
 # Conventions
 
-> This document is maintained by the syncer agent after each feature merge.
-> Last updated: <date>
+> This document is maintained by the syncer agent. It reflects the current state of the codebase.
+> Last updated: <date> · sync-commit: <none>
 
 ## Code Style
 

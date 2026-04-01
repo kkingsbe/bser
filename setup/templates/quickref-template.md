@@ -35,7 +35,7 @@ Phases 1 and 4 are **agent-driven**. Phases 2 and 3 are **where you focus**.
 | `/epic <description>` | Decompose large task into ordered phases |
 | `/implement <slug>` | Continue building from plan |
 | `/review <slug>` | Diff review against parent branch |
-| `/sync <slug>` | Update docs post-merge |
+| `/sync` | Reconcile docs to current codebase state |
 | `/hotfix <description>` | Quick fix escape hatch |
 | `/recap` | End-of-session summary |
 | `/impact <slug>` | Dependency impact analysis |
@@ -50,7 +50,7 @@ Phases 1 and 4 are **agent-driven**. Phases 2 and 3 are **where you focus**.
 /implement add-xer-parser                 # Continue from plan
 /review add-xer-parser                    # Check against plan
 # merge feat/add-xer-parser to main
-/sync add-xer-parser                     # Update docs after merge
+/sync                                    # Reconcile docs to codebase
 /recap                                   # End of session
 ```
 
@@ -61,7 +61,7 @@ Phases 1 and 4 are **agent-driven**. Phases 2 and 3 are **where you focus**.
 | Agent | Invocation | Purpose |
 |-------|-----------|---------|
 | `@reviewer` | `@reviewer Review the diff...` | Read-only diff review, locked permissions |
-| `@syncer` | `@syncer Sync docs after merge...` | Post-merge doc updates, markdown-only edits |
+| `@syncer` | `@syncer Sync docs to current state` | Post-merge doc reconciliation, markdown-only edits |
 | `@reporter` | `@reporter Generate sprint recap...` | HTML+CSS+mermaid report generation |
 
 ---

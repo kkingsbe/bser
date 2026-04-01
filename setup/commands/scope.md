@@ -37,10 +37,19 @@ Follow this process:
 
 4. PLAN: Create an implementation plan:
    - List the specific functions, methods, or components to create or modify.
-   - List concrete test cases.
    - Identify which existing modules this touches and any potential side effects.
    - Check ARCHITECTURE.md and CONVENTIONS.md for relevant patterns to follow.
    - If the scope feels very large, suggest decomposing into an epic via `/epic` instead.
+
+   **Test cases — generate across all three categories:**
+
+   - **Happy path** (minimum 2): Expected usage scenarios. What happens when things work correctly?
+   - **Error & boundary** (minimum 2): What happens with invalid input, empty data, null values, out-of-range numbers, concurrent access, missing dependencies, network failures? For every function you're creating or modifying, think: *what's the worst input someone could pass, and what should happen?*
+   - **Integration** (minimum 1): How do the changed components interact with their callers and dependencies? If module A calls module B and you're changing B's behavior, write a test that exercises A→B together.
+
+   Don't just test that the code runs — test that it **behaves correctly** under real conditions. A test that only calls a function with perfect input and checks `!= null` is not a useful test.
+
+   **Acceptance criteria:** In addition to test cases, list 2-3 observable behaviors that define "done" from the user's perspective. These are what the human will check during manual verification — things like "the page loads in under 2 seconds" or "the error message tells the user what to fix." Acceptance criteria bridge the gap between what automated tests can verify and what the user actually experiences.
 
 5. WRITE: Save the plan using the template format found in `.plans/_TEMPLATE.md` (if it exists) or this structure:
    - Status: IN_PROGRESS
@@ -48,7 +57,7 @@ Follow this process:
    - Branch name
    - Parent branch (main or epic/<epic-slug>)
    - One-liner description
-   - Scope, Files to Change, Test Cases, Implementation Notes, Future (Out of Scope)
+   - Scope, Files to Change, Test Cases (categorized: Happy Path / Error & Boundary / Integration), Acceptance Criteria, Implementation Notes, Future (Out of Scope)
 
    If this is a phase of an epic, add to the epic's phases table in `.plans/epics/<epic-slug>/README.md`:
    - Update the phase's status from PLANNING to IN_PROGRESS
@@ -88,10 +97,31 @@ Terminal output showing:
 ## Files to Change
 - `src/auth/service.ts` — authentication logic
 - `src/auth/middleware.ts` — JWT validation middleware
+- `src/auth/service.spec.ts` — tests for auth service
+- `src/auth/middleware.spec.ts` — tests for middleware
 
 ## Test Cases
-- [ ] User can login with valid credentials
-- [ ] Invalid credentials return 401
+
+### Happy Path
+- [ ] User can login with valid credentials and receives a JWT
+- [ ] Valid JWT passes middleware and populates request context
+- [ ] Token refresh returns a new valid JWT
+
+### Error & Boundary
+- [ ] Invalid credentials return 401 with descriptive error
+- [ ] Expired JWT returns 401, not 500
+- [ ] Malformed JWT (random string, truncated, wrong algorithm) returns 401
+- [ ] Empty authorization header returns 401
+- [ ] SQL injection in username field is safely handled
+
+### Integration
+- [ ] Protected route rejects unauthenticated requests end-to-end
+- [ ] Auth middleware correctly passes user context to downstream handlers
+
+## Acceptance Criteria
+- Login endpoint responds in under 200ms for valid credentials
+- Error responses include a human-readable message explaining what went wrong
+- Existing unauthenticated endpoints continue to work without auth headers
 ```
 
 **Common Variations:**
@@ -108,7 +138,13 @@ Follow this reasoning process for every scoping task:
 2. **INTERPRET**: Parse the task description. What is the user trying to accomplish? What does success look like? Is this a feature, bugfix, refactor, or chore?
 3. **DERIVE**: Convert the description into a short kebab-case slug (2-4 words max). Extract a one-liner that captures the essential goal.
 4. **CONSTRAIN**: Identify the boundaries — what is explicitly NOT part of this task. Check the "Future (Out of Scope)" section of any existing related plans.
-5. **DECOMPOSE**: Break into concrete deliverables: specific files to change, specific test cases to write, specific behavior to implement. If the list grows beyond 5-7 items, suggest decomposing into an epic instead.
-6. **VALIDATE**: Confirm the plan is achievable in a single session. Check that all dependencies are available and that the test baseline will be clean.
+5. **DECOMPOSE**: Break into concrete deliverables: specific files to change, specific behavior to implement. If the list grows beyond 5-7 items, suggest decomposing into an epic instead.
+6. **TEST THINKING**: For each function or component you're planning to create or modify, ask:
+   - What's the happy path? (2+ tests)
+   - What's the worst input someone could pass? What happens with null, empty, too-large, wrong-type, or malicious input? (2+ tests)
+   - Who calls this code, and does the caller still work correctly after the change? (1+ test)
+   - If this touches a boundary between modules (e.g., service ↔ API, service ↔ database), is that interaction tested?
+7. **ACCEPTANCE CRITERIA**: Define 2-3 observable behaviors that constitute "done" from the user's perspective — things automated tests may not cover (performance, UX, error message clarity, backward compatibility).
+8. **VALIDATE**: Confirm the plan is achievable in a single session. Check that all dependencies are available and that the test baseline will be clean.
 
 Keep reasoning explicit in your output — show which step you're at as you work through it.

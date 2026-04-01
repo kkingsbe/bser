@@ -19,9 +19,26 @@
 
 ## Test Cases
 
-- [ ] <test case 1>
-- [ ] <test case 2>
-- [ ] <test case 3>
+### Happy Path
+- [ ] <expected usage scenario 1>
+- [ ] <expected usage scenario 2>
+
+### Error & Boundary
+- [ ] <invalid input handling>
+- [ ] <boundary condition / edge case>
+- [ ] <missing or null data handling>
+
+### Integration
+- [ ] <interaction with dependent module or caller>
+- [ ] <end-to-end flow through the changed components>
+
+## Acceptance Criteria
+
+<What must be true for this task to be considered done — from the user's perspective, not the test runner's. These describe observable behavior, not implementation details.>
+
+- <criterion 1: e.g., "User sees a confirmation toast after saving">
+- <criterion 2: e.g., "API returns 400 with a descriptive message for malformed input">
+- <criterion 3: e.g., "Existing import flows continue to work unchanged">
 
 ## Implementation Notes
 
