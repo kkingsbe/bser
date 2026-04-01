@@ -57,4 +57,9 @@ Move these to .plans/backlog.md during sync.>
 **Actual changes:** <summary of what was built>
 **Deviated from plan:** <yes/no, and how>
 **Impact:** <what modules now depend on this>
-```
+
+## Context
+
+> **For standalone phases:** This document owns its own context. Use the categories below to track discoveries, assumptions, and realizations during this phase.
+
+> **For phases linked to an epic:** Context lives in the epic document, not here. Do NOT add context entries below. Instead, when you complete this phase's work (before marking COMPLETE), extract relevant context to the epic's `## Context & Learnings` section and reference it in your Completion Log.

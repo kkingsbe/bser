@@ -33,6 +33,37 @@ Each phase is a self-contained plan that branches from and merges back into `epi
 
 <How do you know the epic is done? What should be true when all phases are complete?>
 
+## Context & Learnings
+
+> Updated as discoveries are made throughout the epic lifecycle. This is where you capture what you learn about the system, what assumptions you've made, key realizations, and open questions that may impact remaining phases.
+
+### Discoveries
+How the system actually works, built up across phases.
+
+- **<date> (<phase-n>)**: <description of what you learned>
+
+### Assumptions
+Things you expect to be true but haven't validated yet.
+
+- **<date> (<phase-n>)**: <assumption description>
+  - **Status:** Unvalidated | Confirmed | Challenged | Invalidated
+
+### Realizations
+Key insights that changed your approach or understanding.
+
+- **<date> (<phase-n>)**: <realization>
+
+### Resolved Questions
+Questions that were blocking decisions but are now answered.
+
+- **<date> (<phase-n>)**: **Q:** <question>
+  **A:** <answer>
+
+### Open Questions
+Still unresolved — may impact remaining phases.
+
+- **<date> (<phase-n>)**: <question>
+
 ---
 
 ## Progress Log

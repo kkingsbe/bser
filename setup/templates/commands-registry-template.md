@@ -14,6 +14,7 @@
 | `/recap` | End-of-session summary |
 | `/impact` | Dependency impact analysis |
 | `/estimate` | Planned vs actual calibration |
+| `/update` | Fetch latest BSER bootstrap from GitHub |
 
 ## Adding Commands
 

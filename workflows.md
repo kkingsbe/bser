@@ -235,6 +235,8 @@ gitGraph
    /sync <epic>-phase-N-...            (update docs, mark phase complete)
    ```
 
+   After each phase merges to the epic branch, review what you learned and update the epic's `## Context & Learnings` section before scoping the next phase.
+
    The merge step for phases:
    ```bash
    git checkout epic/<epic-name>
@@ -262,6 +264,7 @@ gitGraph
 - **The epic doc is a living roadmap, not a contract.** You will learn things during early phases that change later phases. Update the epic doc freely.
 - **Scope the next phase only when you're ready to implement it.** Don't pre-scope all phases upfront — the epic branch will have changed by the time you get to phase 3.
 - **Brief between every phase.** This is the most important rule. Your mental model goes stale fast during large refactors.
+- **Maintain epic context.** As you discover things during a phase — how the system works, assumptions you're making, questions that arise — add them to the epic's `## Context & Learnings` section. Don't let learnings die in a phase's implementation notes. This is what makes later phases faster.
 - **Keep main clean.** The epic branch absorbs all the in-progress churn. Main only sees the finished result.
 
 ### When to Use an Epic vs. a Single Plan
@@ -360,6 +363,7 @@ Do it on main. Still run `/sync <name>` after if it changed anything meaningful.
 | `/recap` | — | End-of-session summary |
 | `/impact <slug>` | 2 | Dependency impact analysis before implementing |
 | `/estimate` | — | Planned-vs-actual calibration across completed plans |
+| `/update` | — | Fetch latest BSER bootstrap from GitHub |
 
 **Committed files:** `.bser-version`, `.plans/*.md`, `AGENTS.md`, `ARCHITECTURE.md`, `CONVENTIONS.md`, `.kilocode/commands/*.md`, `.kilo/agents/*.md`
 

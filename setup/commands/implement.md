@@ -31,12 +31,22 @@ Process:
 
    Follow patterns in CONVENTIONS.md. Commit after each logical unit of progress with descriptive commit messages.
 
+5a. **Context extraction:** If this plan is a phase of an epic (Parent: epic/<epic-slug>):
+   - Before marking the phase complete, review your work for any:
+     - Discoveries about how the system works
+     - Assumptions you made (validated or challenged)
+     - Realizations that changed your approach
+     - Questions that got answered
+   - Add relevant items to the epic's `## Context & Learnings` section
+   - In the Completion Log's "Impact" field, reference any context you added (e.g., "Added discovery about X to epic context")
+
 6. After completing a chunk of work, update the test case checkboxes in the plan doc (across all three categories: Happy Path, Error & Boundary, Integration).
 
 Do NOT:
 - Modify files outside the scope defined in the plan.
 - Add features not in the plan (note them in the "Future" section instead).
 - Refactor unrelated code, even if you notice opportunities.
+- Leave learnings in implementation notes — extract discoveries to the epic's Context & Learnings section before completing
 
 If the plan turns out to be wrong or insufficient, stop and tell me what needs to change rather than improvising.
 

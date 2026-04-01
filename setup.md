@@ -136,6 +136,7 @@ Create each slash command by reading from `setup/commands/` and writing to `.kil
 | `/recap` | `setup/commands/recap.md` | `.kilocode/commands/recap.md` |
 | `/impact` | `setup/commands/impact.md` | `.kilocode/commands/impact.md` |
 | `/estimate` | `setup/commands/estimate.md` | `.kilocode/commands/estimate.md` |
+| `/update` | `setup/commands/update.md` | `.kilocode/commands/update.md` |
 
 **Process:**
 1. For each command above, read the source file from `setup/commands/`
@@ -209,141 +210,43 @@ After setup, confirm everything works:
 
 ## 7. Migrating from a Previous BSER Version
 
-If you have a repo already using an earlier version of the BSER framework, follow these steps to bring it up to date. Run these from the project root.
+The `/update` command is the migration mechanism for bringing an existing BSER project up to date. It handles the entire upgrade process automatically.
 
-### Step 0: Update `.bser-version`
+### What `/update` Does
 
-If you don't have a `.bser-version` file yet, create it:
+When you run `/update`, it:
+
+1. **Detects local modifications** — scans your existing `AGENTS.md`, `ARCHITECTURE.md`, and `CONVENTIONS.md` to identify any customizations you've made
+2. **Creates a full backup** — copies all three files to `.plans/` before making any changes
+3. **Replaces all commands and agents** — copies fresh versions of every command (`setup/commands/`) and subagent (`setup/agents/`) into your project
+4. **Fills in templated sections** — reads your backups and intelligently fills in template placeholders (like project name, branch conventions) from your existing content
+5. **Updates the version file** — bumps `.bser-version` to the latest version
+
+### Preserving Customizations
+
+The template filling is designed to preserve your customizations automatically. If you've edited `AGENTS.md`, `ARCHITECTURE.md`, or `CONVENTIONS.md`, the `/update` command reads your content and carries it forward into the fresh templates.
+
+**If you have intentional customizations you want to discard** and start fresh with the new templates, run:
 
 ```bash
-touch .bser-version
+/update --force
 ```
 
-Then update it with the new version:
+This bypasses the template-filling step and replaces everything with clean copies from the framework.
+
+### Version File
+
+The `.bser-version` file tracks which framework version your project is using:
 
 ```text
 version: <new-version>
 date-adopted: <YYYY-MM-DD>
-notes: Migrated from <old-version> — see migration guide in setup.md
+notes: Migrated from <old-version>
 ```
 
-### Step 1: Scaffold Missing Directories
+If you need to manually update the version (for example, if you skipped a version), edit `.bser-version` directly.
 
-```bash
-# These are idempotent — won't overwrite existing content
-mkdir -p .kilo/agents
-mkdir -p .reports/screenshots
-mkdir -p .kilocode/commands
-```
-
-### Step 2: Remove Old Custom Modes
-
-If you previously used `.kilocodemodes` or `custom_modes.yaml` for BSER modes (`reviewer`, `syncer`), these are now subagents:
-
-```bash
-# Check if old mode config exists
-cat .kilocodemodes 2>/dev/null
-cat ~/.config/kilo/custom_modes.yaml 2>/dev/null
-```
-
-If you find `reviewer` or `syncer` mode definitions in either file, remove them. They're replaced by the subagent markdown files in `.kilo/agents/`. If the files contain other non-BSER modes you still use, keep those — just remove the BSER-specific ones.
-
-### Step 3: Install Subagents
-
-Copy the subagent definitions from `setup/agents/` into `.kilo/agents/`:
-
-```bash
-# Read from setup/agents/ and write to .kilo/agents/
-cp setup/agents/reviewer.md .kilo/agents/reviewer.md
-cp setup/agents/syncer.md .kilo/agents/syncer.md
-cp setup/agents/reporter.md .kilo/agents/reporter.md
-```
-
-- `.kilo/agents/reviewer.md` — the diff review agent (now with agent-browser live verification)
-- `.kilo/agents/syncer.md` — the post-merge doc sync agent
-- `.kilo/agents/reporter.md` — the HTML report generator (new — this is the human interface layer)
-
-If you already have these files from a previous version, **replace them entirely** with the current versions from `setup/agents/`. The reporter agent is new and must be added.
-
-### Step 4: Update Slash Commands
-
-Replace all command files in `.kilocode/commands/` with the current versions from `setup/commands/`. The key changes since earlier versions:
-
-| Command | What Changed |
-|---------|-------------|
-| `/scope` | No longer takes a kebab-case argument. Accepts freeform description, derives slug. Uses `$ARGUMENTS` instead of `$1`. Now epic-branch-aware. |
-| `/epic` | **New.** Freeform description input, creates `epic/` branch. |
-| `/implement` | Now checks for `.fixlist.md` to enter targeted fix mode after review. |
-| `/review` | Now writes a `.fixlist.md` on NEEDS WORK verdict. Renderer spec for `@reporter` with screenshot embedding. |
-| `/sync` | Unchanged. |
-| `/hotfix` | Now accepts freeform description, derives slug. |
-| `/brief` | Now invokes `@reporter` — output is an HTML report, not terminal text. |
-| `/recap` | **New.** End-of-session summary via `@reporter`. |
-| `/impact` | **New.** Dependency impact analysis via `@reporter`. |
-| `/estimate` | **New.** Planned-vs-actual calibration via `@reporter`. |
-
-Copy the commands from `setup/commands/`:
-
-```bash
-# Replace all existing commands with current versions from setup/commands/
-cp setup/commands/brief.md .kilocode/commands/brief.md
-cp setup/commands/scope.md .kilocode/commands/scope.md
-cp setup/commands/epic.md .kilocode/commands/epic.md
-cp setup/commands/implement.md .kilocode/commands/implement.md
-cp setup/commands/review.md .kilocode/commands/review.md
-cp setup/commands/sync.md .kilocode/commands/sync.md
-cp setup/commands/hotfix.md .kilocode/commands/hotfix.md
-cp setup/commands/recap.md .kilocode/commands/recap.md
-cp setup/commands/impact.md .kilocode/commands/impact.md
-cp setup/commands/estimate.md .kilocode/commands/estimate.md
-```
-
-### Step 5: Update Plan Templates
-
-If you have `.plans/_TEMPLATE.md`, update it to include the new `Parent` field. Read the current template from `setup/templates/plan-template.md`:
-
-```bash
-cp setup/templates/plan-template.md .plans/_TEMPLATE.md
-```
-
-Add the epic template if it doesn't exist:
-
-```bash
-# Check if epic template exists
-ls .plans/_EPIC_TEMPLATE.md 2>/dev/null
-
-# If missing, copy from setup/templates/
-cp setup/templates/epic-template.md .plans/_EPIC_TEMPLATE.md
-```
-
-### Step 6: Update AGENTS.md
-
-If your `AGENTS.md` exists but predates the current version, update the `## BSER Workflow` section to match the template from `setup/templates/AGENTS.md`. Key additions:
-
-- Reference to `@reporter` and `@syncer` subagents
-- The workflow rules section (TDD, no scope expansion, stop-if-plan-is-wrong)
-- Git conventions including `epic/` branch prefix
-
-```bash
-# Update from template
-cp setup/templates/AGENTS.md AGENTS.md
-# Then adapt for your project
-```
-
-If `AGENTS.md` doesn't exist, create it from the template and adapt for your project.
-
-### Step 7: Update Existing Plan Docs
-
-Existing `.plans/*.md` files from prior versions will still work — the commands read them by slug. But for consistency, you can optionally update completed plans:
-
-```bash
-# Find plans missing the Parent field
-grep -rL "Parent:" .plans/*.md 2>/dev/null
-```
-
-For any active (IN_PROGRESS) plans, add `**Parent:** main` to the frontmatter so the review command knows the merge target. Completed plans don't need updating.
-
-### Step 8: Install agent-browser
+### Install agent-browser
 
 If not already installed:
 
@@ -353,28 +256,18 @@ npx skills add https://github.com/vercel-labs/agent-browser --skill agent-browse
 
 This is used by the `reviewer` agent for live UI verification and the `reporter` agent for capturing screenshots.
 
-### Step 9: Verify
+### Verification Checklist
 
-Run through the verification checklist in section 6. Pay special attention to:
+After migration, confirm everything works:
 
-- [ ] `@reporter` is invocable and generates HTML reports to `.reports/`
-- [ ] `/scope` accepts freeform descriptions (test: `/scope Add a health check endpoint to the API`)
-- [ ] `/brief` produces an HTML report that auto-opens in the browser
-- [ ] Old custom modes are removed and don't conflict with new subagents
-
-### Migration Cleanup Checklist
-
-```bash
-# Remove artifacts from older BSER versions that are no longer used
-rm -f .kilocodemodes                     # if it only contained BSER modes
-rm -f .plans/*.fixlist.md                # clean up any leftover fixlists from interrupted reviews
-
-# Verify no stale mode references in config
-grep -r "reviewer\|syncer" ~/.config/kilo/custom_modes.yaml 2>/dev/null && echo "⚠️  Remove BSER modes from global custom_modes.yaml"
-
-# Verify subagents are in place
-ls .kilo/agents/reviewer.md .kilo/agents/syncer.md .kilo/agents/reporter.md
-```
+- [ ] `/update` runs without errors
+- [ ] `.bser-version` reflects the new version
+- [ ] All slash commands are present in `.kilocode/commands/`
+- [ ] All subagents are present in `.kilo/agents/`
+- [ ] `@reviewer`, `@syncer`, and `@reporter` are all invocable
+- [ ] `/brief` produces an HTML report
+- [ ] `/scope` accepts freeform descriptions
+- [ ] `agent-browser` is installed and working
 
 ---
 

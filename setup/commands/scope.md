@@ -17,6 +17,11 @@ Follow this process:
      - Check if an epic branch `epic/<epic-slug>` exists.
      - If the epic branch exists, determine the next phase number by reading the epic's plan doc and checking its phases table.
      - Branch from the epic branch: `git checkout epic/<epic-slug> && git pull && git checkout -b feat/<slug>`
+
+     **Context check:** If this is a phase of an existing epic:
+     - Read the epic's plan doc at `.plans/epics/<epic-slug>/README.md`
+     - Check the `## Context & Learnings` section for relevant discoveries or open questions
+     - Note any context that applies to the phase you're about to scope
    - If no epic reference, check if we're already on an epic branch. If so, create the plan as a phase of that epic.
    - Otherwise, branch from main: `git checkout main && git pull && git checkout -b feat/<slug>`
    - For bugfixes (description mentions fixing/resolving a bug), use `fix/<slug>` instead of `feat/<slug>`.
@@ -138,7 +143,7 @@ Follow this reasoning process for every scoping task:
 2. **INTERPRET**: Parse the task description. What is the user trying to accomplish? What does success look like? Is this a feature, bugfix, refactor, or chore?
 3. **DERIVE**: Convert the description into a short kebab-case slug (2-4 words max). Extract a one-liner that captures the essential goal.
 4. **CONSTRAIN**: Identify the boundaries — what is explicitly NOT part of this task. Check the "Future (Out of Scope)" section of any existing related plans.
-5. **DECOMPOSE**: Break into concrete deliverables: specific files to change, specific behavior to implement. If the list grows beyond 5-7 items, suggest decomposing into an epic instead.
+5. **DECOMPOSE**: Break into concrete deliverables: specific files to change, specific behavior to implement. If the list grows beyond 5-7 items, suggest decomposing into an epic instead. **CONTEXT CHECK**: If this is a phase of an epic, read the epic's Context & Learnings section. Are there relevant discoveries, assumptions, or open questions that should influence how you scope this phase?
 6. **TEST THINKING**: For each function or component you're planning to create or modify, ask:
    - What's the happy path? (2+ tests)
    - What's the worst input someone could pass? What happens with null, empty, too-large, wrong-type, or malicious input? (2+ tests)

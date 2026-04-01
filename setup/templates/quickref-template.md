@@ -40,6 +40,7 @@ Phases 1 and 4 are **agent-driven**. Phases 2 and 3 are **where you focus**.
 | `/recap` | End-of-session summary |
 | `/impact <slug>` | Dependency impact analysis |
 | `/estimate` | Planned vs actual calibration |
+| `/update` | Fetch latest BSER bootstrap from GitHub |
 
 ### Common Usage
 
