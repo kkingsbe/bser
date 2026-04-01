@@ -13,32 +13,14 @@ The agent should first check `.plans/$1.md`, and if not found, search in `.plans
 
 Process:
 1. Read the plan document and check its current status.
-2. **Check for a fix list:** If a fixlist exists alongside the plan (e.g., `.plans/$1.fixlist.md` or `.plans/epics/*/$1.fixlist.md`), this is a post-review fix cycle.
-   - Address each issue in the fix list.
-   - Check off items as you fix them.
-   - Delete the fixlist file when all issues are resolved.
-   - Skip the rest of this process — focus only on the fixes.
+2. **Check for a fix list:** If a fixlist exists alongside the plan (e.g., `.plans/$1.fixlist.md` or `.plans/epics/*/$1.fixlist.md`), this is a post-review fix cycle. For fixlist workflow, see `{{partials:fixlist-workflow}}`
 3. Check git status and recent commits on this branch to understand what's already been done.
 4. Run existing tests to see current state: what passes, what fails, what's missing.
-5. Continue implementation from where it left off, following TDD:
-
-   **For each function or component you implement:**
-
-   a. **Write the happy path test first.** Make it fail. Implement until it passes.
-   b. **Write error and boundary tests before moving on.** For every function, ask: what happens with null input? Empty input? Input that's too large, wrong type, or malicious? A test that only checks the happy path is incomplete — write at least one test for a failure mode before considering that function done.
-   c. **Write an integration test if this component has callers or dependencies.** If module A calls this code, write a test that exercises A→this→downstream together. Don't just test in isolation if the plan's integration test cases require it.
-   d. **Check the plan's acceptance criteria.** If an acceptance criterion can be verified with an automated test (e.g., "API returns 400 with descriptive message for malformed input"), write that test. If it can't be automated (e.g., "page loads feel fast"), note it for manual verification.
+5. Continue implementation from where it left off, following TDD workflow defined in `{{partials:tdd-workflow}}`
 
    Follow patterns in CONVENTIONS.md. Commit after each logical unit of progress with descriptive commit messages.
 
-5a. **Context extraction:** If this plan is a phase of an epic (Parent: epic/<epic-slug>):
-   - Before marking the phase complete, review your work for any:
-     - Discoveries about how the system works
-     - Assumptions you made (validated or challenged)
-     - Realizations that changed your approach
-     - Questions that got answered
-   - Add relevant items to the epic's `## Context & Learnings` section
-   - In the Completion Log's "Impact" field, reference any context you added (e.g., "Added discovery about X to epic context")
+5a. **Context extraction:** If this plan is a phase of an epic (Parent: epic/<epic-slug>): For epic context workflow, see `{{partials:epic-context-workflow}}`
 
 6. After completing a chunk of work, update the test case checkboxes in the plan doc (across all three categories: Happy Path, Error & Boundary, Integration).
 

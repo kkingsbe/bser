@@ -24,11 +24,7 @@ Gather the following data:
    - **Plan alignment:** Does the implementation match what was planned? List deviations.
    - **Scope check:** Are there changes to files NOT listed in the plan? Flag each.
    - **Code quality:** Check naming, patterns, consistency with CONVENTIONS.md.
-   - **Test category coverage:** Check that all three test categories have been addressed:
-     - **Happy path:** Are the expected usage scenarios tested?
-     - **Error & boundary:** Are there tests for invalid input, null/empty values, edge cases? If a function has no error-path test, flag it as a gap.
-     - **Integration:** Are cross-component interactions tested where the plan requires it?
-     A plan with 5 happy-path tests and 0 error tests is NEEDS WORK even if all tests pass.
+    - **Test category coverage:** For test case category definitions, see `{{partials:test-case-categories}}`
    - **Test quality:** Are the tests testing *behavior* or just *execution*? A test that calls a function and asserts `!= null` without checking the actual return value is superficial — flag it.
    - **Acceptance criteria:** Check each acceptance criterion in the plan. For automatable criteria, verify a corresponding test exists. For non-automatable criteria (UX, performance), note them as requiring manual verification.
    - **Completeness:** Any TODOs, placeholder code, or commented-out blocks?

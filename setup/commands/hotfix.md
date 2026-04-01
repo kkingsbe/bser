@@ -5,7 +5,7 @@ mode: code
 ---
 Quick hotfix: "$ARGUMENTS"
 
-1. Derive a short kebab-case slug from the description above (e.g., `fix-null-pointer-auth`, `fix-csv-export-crash`).
+1. For slug derivation conventions, see `{{partials:slug-derivation}}`
 2. Create branch: `git checkout main && git pull && git checkout -b fix/<slug>`
 3. Implement the fix directly. Keep changes minimal and focused.
 4. Run tests to confirm the fix works and nothing else broke.

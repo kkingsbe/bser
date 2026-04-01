@@ -19,6 +19,8 @@
 
 ## Test Cases
 
+For test case category definitions, see `{{partials:test-case-categories}}`
+
 ### Happy Path
 - [ ] <expected usage scenario 1>
 - [ ] <expected usage scenario 2>

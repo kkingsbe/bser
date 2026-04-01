@@ -12,16 +12,15 @@ Follow this process:
    - A **one-liner** — a single sentence description of the task.
    Use the slug for all branch names and file names below.
 
+   For slug derivation conventions, see `{{partials:slug-derivation}}`
+
 1. BRANCH: Determine the correct base branch:
    - Check if the task description references an existing epic. If so:
      - Check if an epic branch `epic/<epic-slug>` exists.
      - If the epic branch exists, determine the next phase number by reading the epic's plan doc and checking its phases table.
      - Branch from the epic branch: `git checkout epic/<epic-slug> && git pull && git checkout -b feat/<slug>`
 
-     **Context check:** If this is a phase of an existing epic:
-     - Read the epic's plan doc at `.plans/epics/<epic-slug>/README.md`
-     - Check the `## Context & Learnings` section for relevant discoveries or open questions
-     - Note any context that applies to the phase you're about to scope
+     **Context check:** If this is a phase of an existing epic, see `{{partials:epic-context-workflow}}`
    - If no epic reference, check if we're already on an epic branch. If so, create the plan as a phase of that epic.
    - Otherwise, branch from main: `git checkout main && git pull && git checkout -b feat/<slug>`
    - For bugfixes (description mentions fixing/resolving a bug), use `fix/<slug>` instead of `feat/<slug>`.
@@ -46,13 +45,7 @@ Follow this process:
    - Check ARCHITECTURE.md and CONVENTIONS.md for relevant patterns to follow.
    - If the scope feels very large, suggest decomposing into an epic via `/epic` instead.
 
-   **Test cases — generate across all three categories:**
-
-   - **Happy path** (minimum 2): Expected usage scenarios. What happens when things work correctly?
-   - **Error & boundary** (minimum 2): What happens with invalid input, empty data, null values, out-of-range numbers, concurrent access, missing dependencies, network failures? For every function you're creating or modifying, think: *what's the worst input someone could pass, and what should happen?*
-   - **Integration** (minimum 1): How do the changed components interact with their callers and dependencies? If module A calls module B and you're changing B's behavior, write a test that exercises A→B together.
-
-   Don't just test that the code runs — test that it **behaves correctly** under real conditions. A test that only calls a function with perfect input and checks `!= null` is not a useful test.
+   For test case guidance, see `{{partials:test-case-categories}}` and `{{partials:tdd-workflow}}`
 
    **Acceptance criteria:** In addition to test cases, list 2-3 observable behaviors that define "done" from the user's perspective. These are what the human will check during manual verification — things like "the page loads in under 2 seconds" or "the error message tells the user what to fix." Acceptance criteria bridge the gap between what automated tests can verify and what the user actually experiences.
 
@@ -144,11 +137,7 @@ Follow this reasoning process for every scoping task:
 3. **DERIVE**: Convert the description into a short kebab-case slug (2-4 words max). Extract a one-liner that captures the essential goal.
 4. **CONSTRAIN**: Identify the boundaries — what is explicitly NOT part of this task. Check the "Future (Out of Scope)" section of any existing related plans.
 5. **DECOMPOSE**: Break into concrete deliverables: specific files to change, specific behavior to implement. If the list grows beyond 5-7 items, suggest decomposing into an epic instead. **CONTEXT CHECK**: If this is a phase of an epic, read the epic's Context & Learnings section. Are there relevant discoveries, assumptions, or open questions that should influence how you scope this phase?
-6. **TEST THINKING**: For each function or component you're planning to create or modify, ask:
-   - What's the happy path? (2+ tests)
-   - What's the worst input someone could pass? What happens with null, empty, too-large, wrong-type, or malicious input? (2+ tests)
-   - Who calls this code, and does the caller still work correctly after the change? (1+ test)
-   - If this touches a boundary between modules (e.g., service ↔ API, service ↔ database), is that interaction tested?
+6. **TEST THINKING**: For each function or component you're planning to create or modify, see `{{partials:test-case-categories}}` for guidance on generating test cases across Happy path, Error & boundary, and Integration categories.
 7. **ACCEPTANCE CRITERIA**: Define 2-3 observable behaviors that constitute "done" from the user's perspective — things automated tests may not cover (performance, UX, error message clarity, backward compatibility).
 8. **VALIDATE**: Confirm the plan is achievable in a single session. Check that all dependencies are available and that the test baseline will be clean.
 

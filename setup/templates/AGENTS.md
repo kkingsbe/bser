@@ -83,11 +83,7 @@ Every plan document should be tagged with one of these categories in its frontma
 
 ### Test Depth Requirements
 
-Every plan organizes test cases into three categories. All three must be covered:
-
-- **Happy path:** Expected usage — verify the code works with valid input.
-- **Error & boundary:** Invalid input, null/empty values, out-of-range data, type mismatches, missing dependencies. For every function you write, test at least one failure mode.
-- **Integration:** Verify interactions between the changed components and their callers/dependencies. If you changed a service that an API route calls, test the route→service path together.
+For test case category definitions, see `{{partials:test-case-categories}}`
 
 A test that only calls a function with perfect input and asserts `!= null` is not a useful test. Test *behavior*, not just execution.
 
