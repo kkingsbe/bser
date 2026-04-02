@@ -36,30 +36,30 @@ Before proceeding with any file operations, compare local BSER-managed files aga
 **Commands comparison:**
 ```bash
 # Compare each command file
-diff .kilocode/commands/brief.md setup/commands/brief.md
-diff .kilocode/commands/scope.md setup/commands/scope.md
-diff .kilocode/commands/epic.md setup/commands/epic.md
-diff .kilocode/commands/implement.md setup/commands/implement.md
-diff .kilocode/commands/review.md setup/commands/review.md
-diff .kilocode/commands/sync.md setup/commands/sync.md
-diff .kilocode/commands/hotfix.md setup/commands/hotfix.md
-diff .kilocode/commands/recap.md setup/commands/recap.md
-diff .kilocode/commands/impact.md setup/commands/impact.md
-diff .kilocode/commands/estimate.md setup/commands/estimate.md
+diff .kilocode/commands/brief.md .bser/setup/commands/brief.md
+diff .kilocode/commands/scope.md .bser/setup/commands/scope.md
+diff .kilocode/commands/epic.md .bser/setup/commands/epic.md
+diff .kilocode/commands/implement.md .bser/setup/commands/implement.md
+diff .kilocode/commands/review.md .bser/setup/commands/review.md
+diff .kilocode/commands/sync.md .bser/setup/commands/sync.md
+diff .kilocode/commands/hotfix.md .bser/setup/commands/hotfix.md
+diff .kilocode/commands/recap.md .bser/setup/commands/recap.md
+diff .kilocode/commands/impact.md .bser/setup/commands/impact.md
+diff .kilocode/commands/estimate.md .bser/setup/commands/estimate.md
 ```
 
 **Agents comparison:**
 ```bash
-diff .kilo/agents/reviewer.md setup/agents/reviewer.md
-diff .kilo/agents/syncer.md setup/agents/syncer.md
-diff .kilo/agents/reporter.md setup/agents/reporter.md
+diff .kilo/agents/reviewer.md .bser/setup/agents/reviewer.md
+diff .kilo/agents/syncer.md .bser/setup/agents/syncer.md
+diff .kilo/agents/reporter.md .bser/setup/agents/reporter.md
 ```
 
 **Templates comparison:**
 ```bash
-diff AGENTS.md setup/templates/AGENTS.md
-diff ARCHITECTURE.md setup/templates/ARCHITECTURE.md
-diff CONVENTIONS.md setup/templates/CONVENTIONS.md
+diff AGENTS.md .bser/setup/templates/AGENTS.md
+diff ARCHITECTURE.md .bser/setup/templates/ARCHITECTURE.md
+diff CONVENTIONS.md .bser/setup/templates/CONVENTIONS.md
 ```
 
 If ANY differences are found, **STOP IMMEDIATELY** and display:
@@ -91,20 +91,20 @@ Perform a complete replacement of all BSER framework files:
 
 ```bash
 # Commands - full replacement
-cp setup/commands/*.md .kilocode/commands/
+cp .bser/setup/commands/*.md .kilocode/commands/
 
 # Agents - full replacement
-cp setup/agents/*.md .kilo/agents/
+cp .bser/setup/agents/*.md .kilo/agents/
 
 # Templates - to their correct destinations
-cp setup/templates/AGENTS.md .
-cp setup/templates/ARCHITECTURE.md .
-cp setup/templates/CONVENTIONS.md .
-cp setup/templates/backlog-template.md .plans/backlog.md
-cp setup/templates/plan-template.md .plans/_TEMPLATE.md
-cp setup/templates/epic-template.md .plans/_EPIC_TEMPLATE.md
-cp setup/templates/commands-registry-template.md .kilocode/commands/commands.md
-cp setup/templates/quickref-template.md BSER-QUICKREF.md
+cp .bser/setup/templates/AGENTS.md .
+cp .bser/setup/templates/ARCHITECTURE.md .
+cp .bser/setup/templates/CONVENTIONS.md .
+cp .bser/setup/templates/backlog-template.md .plans/backlog.md
+cp .bser/setup/templates/plan-template.md .plans/_TEMPLATE.md
+cp .bser/setup/templates/epic-template.md .plans/_EPIC_TEMPLATE.md
+cp .bser/setup/templates/commands-registry-template.md .kilocode/commands/commands.md
+cp .bser/setup/templates/quickref-template.md BSER-QUICKREF.md
 ```
 
 ### 6. FILL IN TEMPLATED SECTIONS

@@ -16,11 +16,6 @@ This bootstraps the BSER (Brief → Scope → Execute → Review+Sync) framework
 
 3. **Follow the setup instructions** in `setup.md` to create the project structure, configuration files, and BSER workflow commands and agents.
 
-4. **Remove the cloned directory** (cleanup - the framework files are now in your project):
-   ```bash
-   rm -rf .bser/
-   ```
-
 The setup will create:
 - `.plans/` directory with plan templates
 - `.kilocode/commands/` with slash commands (brief, scope, epic, implement, review, sync, hotfix, recap, impact, estimate)
